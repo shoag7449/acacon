@@ -1,0 +1,270 @@
+.mainfrmBtn1 {
+    margin: 5px;
+    padding: 10px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.mainfrmBtn2 {
+    margin: 5px;
+    padding: 10px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.mainfrmlbl {
+    display: flex;
+    align-items: center;
+    padding-bottom: 5px;
+}
+
+.mainfrmSpan {
+    margin: 0 5px;
+}
+
+.mainfrmSelect {
+    padding: 5px;
+}
+
+.noticefrm {
+    font-size: 22px;
+    position: fixed;
+    background-color: white;
+    z-index: 9999999999;
+}
+
+.noticefrm .download {
+    color: #00f;
+    text-decoration: underline;
+}
+
+.mainfrm {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    border: 3px solid #ddd;
+    width: 300px;
+    z-index: 9999999999;
+}
+
+.mainfrm select {
+    height: 30px;
+}
+
+.selLbl {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.selTxt {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.gifEditfrm {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    border: 3px solid #ddd;
+    width: 80%;
+    height: 80%;
+    overflow-y: scroll;
+    z-index: 9999999999;
+    flex-wrap: wrap;
+}
+
+.gifEditfrm .close-btn {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: none;
+    border: none;
+    font-size: 50px;
+    color: #888;
+    cursor: pointer;
+}
+
+.gifAdjustPopup .close-btn:hover {
+    color: #555;
+}
+
+.gifEditfrmItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 8px;
+    background: #fafafa;
+    width: 120px;
+    box-sizing: revert-layer;
+}
+
+.transp_bg {
+    background-image: linear-gradient(45deg, #ccc 25%, transparent 25%),
+        linear-gradient(-45deg, #ccc 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #ccc 75%),
+        linear-gradient(-45deg, transparent 75%, #ccc 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+.gifEditfrmItemImg {
+    width: 100px;
+    cursor: pointer;
+    border: 2px solid black;
+}
+
+.gifEditfrmItemImg.zoom {
+    width: 200px;
+    cursor: pointer;
+    border: 2px solid black;
+    max-width: none;
+    z-index: 1000;
+}
+
+.gifEditfrmItemInfo {
+    margin: 0 auto;
+}
+
+.gifEditfrmBtnGrp {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    width: 100%;
+    justify-content: center;
+    box-sizing: revert;
+}
+
+.gifEditfrmBtn {
+    padding: 6px 6px;
+    border: none;
+    background: #007bff;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 50px;
+    box-sizing: revert;
+}
+
+.gifEditfrmBtn.disabled {
+    background: #007bff85;
+}
+
+.gifAdjustPopup {
+    position: absolute;
+    min-width: 220px;
+    max-width: 280px;
+    background: linear-gradient(135deg, #ffffff, #f9faff);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    color: #333;
+    padding: 16px 12px;
+    opacity: 0;
+    transform: translate(-50%, 0);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+    z-index: 9999999999;
+}
+
+.gifAdjustPopup::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 0 8px 8px 8px;
+    border-style: solid;
+    border-color: transparent transparent #ffffff transparent;
+    filter: drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.1));
+}
+
+.gifAdjustPopup.visible {
+    opacity: 1;
+    transform: translate(-50%, 10px);
+    pointer-events: auto;
+}
+
+.gifAdjustPopup .close-btn {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #888;
+    cursor: pointer;
+}
+
+.gifAdjustPopup .close-btn:hover {
+    color: #555;
+}
+
+.gifAdjustPopup .popup-row {
+    display: flex;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    flex-direction: column;
+    margin-left: 20px;
+}
+
+.gifAdjustPopup .popup-row label {
+    display: flex;
+    align-items: center;
+    margin-right: 16px;
+    font-size: 14px;
+    color: #333;
+}
+
+.gifAdjustPopup .popup-row input[type="checkbox"] {
+    margin-left: -20px;
+}
+
+.gifAdjustPopup .popup-row label input[type="text"] {
+    margin-left: 6px;
+    padding: 4px 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 80px;
+}
+
+.gifAdjustPopup .popup-row label input[type="range"] {
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.gifAdjustSubmit {
+    border: none;
+    background: #007bff;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 50px;
+    height: 25px;
+}
