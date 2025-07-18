@@ -3,7 +3,7 @@
         만든사람: https://github.com/spspwl12
     */
 
-    const PROXY_SERV_URL = "https://138.2.51.230:17875/proxy?url=%%%ENCODEURL%%%";  // 디시콘, 개드립콘 프록시 서버 설정
+    const PROXY_SERV_URL = "https://jfkskw.duckdns.org:17875/proxy?url=%%%ENCODEURL%%%";  // 디시콘, 개드립콘 프록시 서버 설정
     const JS_ZIP_URL = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"; // 압축 파일 관련 모듈
     const FFMPEG_CORE_JS_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.min.js"; // gif 파일 변환 관련 모듈
     const FFMPEG_CORE_WASM_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm"; // gif 파일 변환 관련 모듈
