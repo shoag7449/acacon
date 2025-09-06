@@ -498,7 +498,7 @@
                     return;
 
                 // 디시콘 모바일 검색 ( CORS 에러 발생 O )
-                find_tag("thum-img").forEach((e, i) => {
+                find_tag("sm-img").forEach((e, i) => {
                     if (validString(o.url = e.src)) {
                         _process(o, true);
                         add_url_prop(i, [o.url], null, e);
