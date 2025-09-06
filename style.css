@@ -64,6 +64,11 @@
     height: 30px;
 }
 
+.mainfrm input[type=radio],
+.mainfrm input[type=checkbox] {
+    appearance: auto;
+}
+
 .selLbl {
     display: flex;
     align-items: center;

@@ -1,6 +1,18 @@
 (() => {
     /*
         만든사람: https://github.com/spspwl12
+
+        특징
+
+        1. 아카콘, 디시콘, 개드립콘, 인벤콘(스티커) 다운로드 지원
+        2. 아카콘 API를 활용해 원본 GIF를 추출 및 다운로드
+        3. MP4 → GIF 변환 (멀티스레드 지원)
+        4. GIF 간단 편집 (속도 조절, 프레임 삭제, 밝기 조절, 샤픈(선명도) 조절, GIF 최적화)
+        5. GIF 프레임을 PNG 이미지로 저장
+        6. 설정값을 저장해 재실행 시 옵션창 자동 숨김
+        7. 좌측 상단 흰색 상태바 더블클릭 시 숨겨진 옵션창 활성화
+        8. 이미 다운로드한 이모티콘에 색상을 입혀 시각적으로 구분
+        9. 모바일 다운로드 (비공식)
     */
 
     const PROXY_SERV_URL = "https://jfkskw.duckdns.org:17875/proxy?url=%%%ENCODEURL%%%";  // 디시콘, 개드립콘 프록시 서버 설정
@@ -9,7 +21,7 @@
     const FFMPEG_CORE_WASM_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm"; // gif 파일 변환 관련 모듈
     const GIF_EDIT_URL = "https://shoag7449.github.io/acacon/gifs.js"; // gif 파일 편집 관련 모듈
     const CSS_URL = "https://shoag7449.github.io/acacon/style.css"; // ui 스타일 정의 파일
-    const ARKA_API_URL = "https://arca.live/api/emoticon/%%%EMOID%%%";
+    const ARKA_API_URL = "https://arca.live/api/emoticon/%%%EMOID%%%"; // 아카라이브 이모티콘 api
     const F366C_STR = "f366c_"; // localStorage에서 prefix로 사용
 
     // ffmpeg_core 파일에 추가적으로 작성할 코드 ( worker 에서 쓰일 예정 )
@@ -184,9 +196,9 @@
     const formContainer = createTagClass("div", `mainfrm`);
     const form = createTag("div", formContainer);
 
-    const gifChk = makeChkbox(form, "GIF 변환");
+    const gifConvChk = makeChkbox(form, "GIF 변환");
     const gifEditChk = makeChkbox(form, "GIF 편집");
-    const pngChk = makeChkbox(form, "PNG 변환");
+    const pngConvChk = makeChkbox(form, "PNG 변환");
 
     // gif 화질 설정칸
     const lossySelectLabel = createTagClass("label", "selLbl", null, form);
@@ -213,9 +225,9 @@
     });
 
     // localStorage에서 저장된 설정값을 가져오는 코드
-    gifChk.checked = localStorage.getItem(F366C_STR + "chk1") === "true";
+    gifConvChk.checked = localStorage.getItem(F366C_STR + "chk1") === "true";
     gifEditChk.checked = localStorage.getItem(F366C_STR + "chk2") === "true";
-    pngChk.checked = localStorage.getItem(F366C_STR + "chk3") === "true";
+    pngConvChk.checked = localStorage.getItem(F366C_STR + "chk3") === "true";
 
     const savedLossyValue = setMinMax(localStorage.getItem(F366C_STR + "lossyval"), 1, 100, 100);
     lossySelectCombo.value = savedLossyValue;
@@ -268,9 +280,9 @@
 
     // localStorage에서 현재 설정값을 저장하는 코드
     const saveSettings = (e) => {
-        localStorage.setItem(F366C_STR + "chk1", gifChk.checked);
+        localStorage.setItem(F366C_STR + "chk1", gifConvChk.checked);
         localStorage.setItem(F366C_STR + "chk2", gifEditChk.checked);
-        localStorage.setItem(F366C_STR + "chk3", pngChk.checked);
+        localStorage.setItem(F366C_STR + "chk3", pngConvChk.checked);
         localStorage.setItem(F366C_STR + "lossyval", lossySelectCombo.value);
         localStorage.setItem(F366C_STR + "fpsval", fpsSelectCombo.value);
         localStorage.setItem(F366C_STR, e);
@@ -437,8 +449,17 @@
                     }
                 });
 
-                // gif 원본 추출
-                if (lossySelectCombo.value == 100 && urls.length > 0 && domain === "arca.live") {
+                /*
+                    gif, png 원본 추출
+
+                    1. 아카라이브는 트래픽 절감을 위해 gif 를 mp4로 변환해서 표시한다. 
+                    2. 디시인사이드도 마찬가지로 트래픽 절감을 위해 gif를 mp4로 변환하나, 
+                    디시콘샵에서는 gif 원본이 출력되기 때문에 별도의 gif 원본 api를 이용 안 해도 된다.
+                */
+
+                if ((gifConvChk.checked || pngConvChk.checked) &&
+                    lossySelectCombo.value == 100 /* lossySelectCombo.value 는 문자열이라 == 연산자를 이용해 정수타입과 비교 */ &&
+                    urls.length > 0 && domain === "arca.live") {
                     const match = parseMatch(currentURL, /e\/(\d+)/);
 
                     if (match) {
@@ -455,7 +476,7 @@
                                     json.forEach(e => {
                                         const found = urls.find(el => el.element && el.element.getAttribute("data-id") == e.id);
                                         if (found)
-                                            found.url.unshift(addHttpMissing(e.imageUrl));
+                                            found.url.unshift(addHttpMissing(e.imageUrl)); // url 배열 맨 앞에 추가한다. (우선순위 높음)
                                     });
                             }
                         }
@@ -467,6 +488,17 @@
 
                 // 디시콘 검색 ( CORS 에러 발생 O )
                 find_tag("img_dccon").forEach((e, i) => {
+                    if (validString(o.url = e.src)) {
+                        _process(o, true);
+                        add_url_prop(i, [o.url], null, e);
+                    }
+                });
+
+                if ((img_count = urls.length) > 0)
+                    return;
+
+                // 디시콘 모바일 검색 ( CORS 에러 발생 O )
+                find_tag("thum-img").forEach((e, i) => {
                     if (validString(o.url = e.src)) {
                         _process(o, true);
                         add_url_prop(i, [o.url], null, e);
@@ -532,7 +564,7 @@
 
                 const ffmpegs = [];
 
-                if (gifChk.checked && mp4cnt > 0) {
+                if (gifConvChk.checked && mp4cnt > 0) {
                     // mp4 -> gif 는 변환이 느리므로 멀티스레드를 적극 활용한다.
                     const worker = async () => {
                         const response = await fetch(FFMPEG_CORE_JS_URL);
@@ -682,7 +714,7 @@
                         let al = true;
 
                         // gif 변환이 체크됐고 url 확장자가 mp4인 경우
-                        if (gifChk.checked && emoObj.extension === "mp4") {
+                        if (gifConvChk.checked && emoObj.extension === "mp4") {
                             // gif 로 변환
                             const gb = await convertGif(blob);
 
@@ -712,7 +744,7 @@
                                 throw new Error("convert Gif Error");
                         }
                         // png 변환이 체크됐고 확장자가 jpeg,jpg,webp,bmp,tiff 에 포함됐다면
-                        else if (pngChk.checked && "jpeg|jpg|webp|bmp|tiff".includes(emoObj.extension)) {
+                        else if (pngConvChk.checked && "jpeg|jpg|webp|bmp|tiff".includes(emoObj.extension)) {
                             // png 변환
                             const gb = await convertPng(blob);
 
