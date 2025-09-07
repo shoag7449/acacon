@@ -264,6 +264,11 @@
     vertical-align: middle;
 }
 
+.gifAdjustPopup input[type=radio],
+.gifAdjustPopup input[type=checkbox] {
+    appearance: auto;
+}
+
 .gifAdjustSubmit {
     border: none;
     background: #007bff;
