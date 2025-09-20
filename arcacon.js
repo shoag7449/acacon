@@ -225,9 +225,9 @@
     });
 
     // localStorage에서 저장된 설정값을 가져오는 코드
-    gifConvChk.checked = localStorage.getItem(F366C_STR + "chk1") === "true";
-    gifEditChk.checked = localStorage.getItem(F366C_STR + "chk2") === "true";
-    pngConvChk.checked = localStorage.getItem(F366C_STR + "chk3") === "true";
+    gifConvChk.checked = (localStorage.getItem(F366C_STR + "chk1") ?? "true") === "true";
+    gifEditChk.checked = (localStorage.getItem(F366C_STR + "chk2") ?? "false") === "true";
+    pngConvChk.checked = (localStorage.getItem(F366C_STR + "chk3") ?? "true") === "true";
 
     const savedLossyValue = setMinMax(localStorage.getItem(F366C_STR + "lossyval"), 1, 100, 100);
     lossySelectCombo.value = savedLossyValue;
@@ -290,6 +290,13 @@
 
     // 변환 버튼을 누를 경우 
     button1.addEventListener("click", () => {
+        if (localStorage.getItem(F366C_STR) != 1)
+            alert('좌측 상단의 흰색 상태 바를 더블 클릭하면 옵션 창을 열 수 있습니다.\n\n' +
+                '1. 아카콘 다운로드 가능.\n' +
+                '2. 디시콘 다운로드 가능.\n' +
+                '3. 개드립콘 다운로드 가능.\n' +
+                '4. 인벤스티커 다운로드 가능.');
+
         saveSettings(1);
         (async () => {
             const loadJavaScript = (url) => {
