@@ -464,7 +464,7 @@
                     디시콘샵에서는 gif 원본이 출력되기 때문에 별도의 gif 원본 api를 이용 안 해도 된다.
                 */
 
-                if ((gifConvChk.checked || pngConvChk.checked) &&
+                if ((gifConvChk.checked && pngConvChk.checked) &&
                     lossySelectCombo.value == 100 /* lossySelectCombo.value 는 문자열이라 == 연산자를 이용해 정수타입과 비교 */ &&
                     urls.length > 0 && domain === "arca.live") {
                     const match = parseMatch(currentURL, /e\/(\d+)/);
@@ -1287,4 +1287,5 @@
     if (autostart === "1")
         button1.click();
 })();
+
 
