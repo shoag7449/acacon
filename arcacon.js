@@ -789,6 +789,7 @@
 
                         // 변환이 된 이미지를 품고 있는 html 태그는 배경색을 바꾼다
                         emoObj.element.style.cssText += ";filter:sepia(100%) hue-rotate(90deg)";
+                        await sleep(Math.floor(Math.random() * 500) + 200);
                     } catch (error) {
                         ++failCnt;
                         setSt(successCnt, img_count, failCnt);
@@ -1286,3 +1287,4 @@
     if (autostart === "1")
         button1.click();
 })();
+
