@@ -290,6 +290,10 @@ input[type=checkbox]:checked::after {
     animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.gifEditfrm:has(.gifAdjustPopup.visible) {
+    overflow: visible;
+}
+
 .gifEditfrm::-webkit-scrollbar { width: 8px; }
 .gifEditfrm::-webkit-scrollbar-track { background: transparent; }
 .gifEditfrm::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -1817,3 +1821,5 @@ input[type=checkbox]:checked::after {
     if (autostart === "1")
         button1.click();
 })();
+
+
