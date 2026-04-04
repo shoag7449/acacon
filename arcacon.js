@@ -290,7 +290,7 @@
 
     // 변환 버튼을 누를 경우 
     button1.addEventListener("click", () => {
-        if (localStorage.getItem(F366C_STR) != 1)
+        if (localStorage.getItem(F366C_STR) != 1 && typeof alert === "function")
             alert('좌측 상단의 흰색 상태 바를 더블 클릭하면 옵션 창을 열 수 있습니다.\n\n' +
                 '1. 아카콘 다운로드 가능.\n' +
                 '2. 디시콘 다운로드 가능.\n' +
