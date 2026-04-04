@@ -290,10 +290,6 @@ input[type=checkbox]:checked::after {
     animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.gifEditfrm:has(.gifAdjustPopup.visible) {
-    overflow: visible;
-}
-
 .gifEditfrm::-webkit-scrollbar { width: 8px; }
 .gifEditfrm::-webkit-scrollbar-track { background: transparent; }
 .gifEditfrm::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -413,8 +409,10 @@ input[type=checkbox]:checked::after {
 }
 
 .gifAdjustPopup {
-    position: absolute;
+    position: fixed;
     min-width: 260px;
+    max-height: 80vh;
+    overflow-y: auto;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -425,14 +423,14 @@ input[type=checkbox]:checked::after {
     padding: 20px;
     font-family: var(--font-family);
     opacity: 0;
-    transform: translate(-50%, 0) scale(0.95);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: scale(0.95);
+    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
-    z-index: 9999999999;
+    z-index: 99999999999;
 }
 .gifAdjustPopup.visible {
     opacity: 1;
-    transform: translate(-50%, 15px) scale(1);
+    transform: scale(1);
     pointer-events: auto;
 }
 
@@ -1385,7 +1383,8 @@ input[type=checkbox]:checked::after {
 
                             const popup = createTagClass("div", "gifAdjustPopup");
 
-                            append(f, popup);
+                            // transform이 있는 부모 안에서는 position:fixed가 깨지므로 body에 직접 추가
+                            append(document.body, popup);
                             setAttr(popup, "role", "dialog");
                             setAttr(popup, "aria-modal", "true");
 
@@ -1396,34 +1395,35 @@ input[type=checkbox]:checked::after {
                             e.stopPropagation();
 
                             setTimeout((popup, form, e) => {
-                                // 화면 경계 보정
-                                const formRect = form.getBoundingClientRect();
+                                const btn = e.target.closest('.gifEditfrmBtn') || e.target;
+                                const btnRect = btn.getBoundingClientRect();
                                 const popupWidth = popup.offsetWidth;
                                 const popupHeight = popup.offsetHeight;
-                                const scrollTop = form.scrollTop;
-                                const scrollLeft = form.scrollLeft;
-                                const clientX = e.clientX;
-                                const clientY = e.clientY;
-                                let relativeX = clientX - formRect.left;
-                                let relativeY = clientY - formRect.top;
+                                const viewW = window.innerWidth;
+                                const viewH = window.innerHeight;
 
-                                if (relativeX + popupWidth / 2 > formRect.width)
-                                    relativeX = formRect.width - popupWidth / 2 - 8;
+                                // X: 버튼 중앙 정렬
+                                let posX = btnRect.left + btnRect.width / 2 - popupWidth / 2;
+                                if (posX + popupWidth > viewW) posX = viewW - popupWidth - 8;
+                                if (posX < 0) posX = 8;
 
-                                if (relativeX - popupWidth / 2 < 0)
-                                    relativeX = popupWidth / 2 + 8;
+                                // Y: 버튼 바로 아래
+                                let posY = btnRect.bottom + 8;
 
-                                if (relativeY + popupHeight > formRect.height)
-                                    relativeY = formRect.height - popupHeight - 16;
+                                // 아래 공간 부족 → 버튼 위에 배치
+                                if (posY + popupHeight > viewH) {
+                                    posY = btnRect.top - popupHeight - 8;
+                                }
 
-                                relativeX += scrollLeft;
-                                relativeY += scrollTop;
+                                // 위에도 부족 → 화면 중앙
+                                if (posY < 0) {
+                                    posY = Math.max(8, (viewH - popupHeight) / 2);
+                                }
 
-                                popup.style.left = relativeX + 'px';
-                                popup.style.top = relativeY + 'px';
-
+                                popup.style.left = posX + 'px';
+                                popup.style.top = posY + 'px';
                                 popup.classList.add('visible');
-                            }, 10, popup, form, e);
+                            }, 100, popup, form, e);
 
                             close_btn.addEventListener('click', e => {
                                 e.stopPropagation();
@@ -1821,5 +1821,3 @@ input[type=checkbox]:checked::after {
     if (autostart === "1")
         button1.click();
 })();
-
-
