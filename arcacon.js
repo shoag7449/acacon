@@ -779,7 +779,7 @@ input[type=checkbox]:checked::after {
         })();
     }
 
-    const button1 = createTagClass("button", "mainfrmBtn1", "변환", form);
+    const button1 = createTagClass("button", "mainfrmBtn1", "전체 이미지 다운로드", form);
     const button3 = createTagClass("button", "mainfrmBtn1", "이미지 선택", form);
     button3.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
     button3.style.boxShadow = "0 4px 12px rgba(16, 185, 129, 0.3)";
