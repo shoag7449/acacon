@@ -308,7 +308,7 @@ input[type=checkbox]:checked::after {
     line-height: 1;
     color: #64748b;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: none;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -411,7 +411,7 @@ input[type=checkbox]:checked::after {
 .gifAdjustPopup {
     position: fixed;
     min-width: 260px;
-    max-height: 80vh;
+    max-height: 350px;
     overflow-y: auto;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(16px);
@@ -427,6 +427,20 @@ input[type=checkbox]:checked::after {
     transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
     z-index: 99999999999;
+}
+.gifAdjustPopup::-webkit-scrollbar {
+    width: 6px;
+}
+.gifAdjustPopup::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 10px 0;
+}
+.gifAdjustPopup::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 10px;
+}
+.gifAdjustPopup::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
 }
 .gifAdjustPopup.visible {
     opacity: 1;
@@ -1095,6 +1109,13 @@ input[type=checkbox]:checked::after {
                     return;
                 }
 
+                // 기존 스크립트 실행으로 인해 색칠된 이미지 원상복귀
+                urls.forEach(emoObj => {
+                    if (emoObj.element) {
+                        emoObj.element.style.cssText = emoObj.element.style.cssText.replace(/;?\s*filter:\s*sepia\(100%\)\s*hue-rotate\(90deg\);?/ig, '');
+                    }
+                });
+
                 /*
                     *************************************************************************
                     *************************************************************************
@@ -1468,6 +1489,12 @@ input[type=checkbox]:checked::after {
                                 form.remove();
                             });
 
+                            form.addEventListener('scroll', () => {
+                                close_btn.style.top = (form.scrollTop + 16) + 'px';
+                            });
+
+
+
                             gifs.sort((a, b) => a.name.localeCompare(b.name));
                             gifs.push({
                                 endboundary: true,
@@ -1638,7 +1665,9 @@ input[type=checkbox]:checked::after {
                                                 const popup_row2 = createTagClass("div", "popup-row", null, popup);
                                                 const checkbox2 = createControl("checkbox", createTagHTML("label", "프레임 스킵", popup_row2), true);
                                                 const textbox2 = createControl("text", createTagHTML("label", "건너뛸 수: ", popup_row2));
+                                                textbox2.addEventListener('input', function () { this.value = this.value.replace(/[^0-9]/g, ''); });
                                                 const textbox2_1 = createControl("text", createTagHTML("label", "제거할 수: ", popup_row2));
+                                                textbox2_1.addEventListener('input', function () { this.value = this.value.replace(/[^0-9]/g, ''); });
 
                                                 // 밝기, 샤픈 영역
                                                 const popup_row3 = createTagClass("div", "popup-row", null, popup);
@@ -1663,6 +1692,105 @@ input[type=checkbox]:checked::after {
                                                 const lbl6 = createTagHTML("label", "", popup_row4);
                                                 const range6 = createControl("range", lbl6);
                                                 const vlbl6 = createTagHTML("div", "6", lbl6);
+
+                                                // 기타 옵션 영역
+                                                const popup_row5 = createTagClass("div", "popup-row", null, popup);
+                                                createTagHTML("label", "기타 옵션", popup_row5);
+
+                                                const spriteColsBox = createControl("text", createTagHTML("label", "가로(열): ", popup_row5));
+                                                spriteColsBox.placeholder = "자동";
+                                                spriteColsBox.addEventListener('input', function () { this.value = this.value.replace(/[^0-9]/g, ''); });
+
+                                                const spriteRowsBox = createControl("text", createTagHTML("label", "세로(행): ", popup_row5));
+                                                spriteRowsBox.placeholder = "자동";
+                                                spriteRowsBox.addEventListener('input', function () { this.value = this.value.replace(/[^0-9]/g, ''); });
+
+                                                const spriteBtn = createTagClass("button", "gifAdjustSubmit", null, popup_row5);
+                                                setHTML(spriteBtn, "스프라이트 만들기");
+                                                spriteBtn.style.marginTop = "4px";
+                                                spriteBtn.style.background = "#10b981";
+                                                spriteBtn.onmouseover = () => spriteBtn.style.background = "#059669";
+                                                spriteBtn.onmouseout = () => spriteBtn.style.background = "#10b981";
+
+                                                spriteBtn.addEventListener('click', async (evt) => {
+                                                    evt.stopPropagation();
+
+                                                    let inputCols = parseInt(spriteColsBox.value);
+                                                    let inputRows = parseInt(spriteRowsBox.value);
+
+                                                    const works = [];
+                                                    if (endIndex)
+                                                        for (let i = 0; i < gifs.length; ++i) works.push(i);
+                                                    else
+                                                        works.push(itemIdx);
+
+                                                    const extZip = endIndex ? new window["JSZip"]() : null;
+                                                    const tasks = [];
+
+                                                    works.forEach(e => {
+                                                        if (gifs[e].endboundary) return;
+
+                                                        tasks.push(new Promise(async resolve => {
+                                                            const arrayBuffer = await gifs[e].tmpBlob.arrayBuffer();
+                                                            const editgifs = GIFS();
+                                                            const dec = editgifs.dec;
+
+                                                            dec.load({
+                                                                files: [],
+                                                                buffers: [arrayBuffer],
+                                                                oncomplete: (F) => {
+                                                                    if (!F || !F[0] || !F[0].frames) { resolve(); return; }
+                                                                    const frames = F[0].frames;
+
+                                                                    let cols = inputCols;
+                                                                    let rows = inputRows;
+
+                                                                    if (isNaN(cols) || cols <= 0) cols = frames.length;
+                                                                    if (isNaN(rows) || rows <= 0) rows = Math.ceil(frames.length / cols);
+
+                                                                    if (isNaN(inputCols) && !isNaN(inputRows) && inputRows > 0) {
+                                                                        cols = Math.ceil(frames.length / rows);
+                                                                    }
+
+                                                                    let frameWidth = 0;
+                                                                    let frameHeight = 0;
+                                                                    frames.forEach(f => {
+                                                                        frameWidth = Math.max(frameWidth, f.canvas.width);
+                                                                        frameHeight = Math.max(frameHeight, f.canvas.height);
+                                                                    });
+
+                                                                    const spriteCanvas = document.createElement("canvas");
+                                                                    spriteCanvas.width = cols * frameWidth;
+                                                                    spriteCanvas.height = rows * frameHeight;
+                                                                    const ctx = spriteCanvas.getContext("2d");
+
+                                                                    frames.forEach((f, idx) => {
+                                                                        const col = idx % cols;
+                                                                        const row = Math.floor(idx / cols);
+                                                                        ctx.drawImage(f.canvas, col * frameWidth, row * frameHeight);
+                                                                    });
+
+                                                                    spriteCanvas.toBlob(blob => {
+                                                                        const filename = gifs[e].name.replace(/\.gif$/i, "_sprite.png");
+                                                                        if (extZip) {
+                                                                            extZip.file(filename, blob);
+                                                                        } else {
+                                                                            createDownloadTag(createURL(blob), filename);
+                                                                        }
+                                                                        resolve();
+                                                                    }, "image/png");
+                                                                },
+                                                                onerror: err => { console.error(err); resolve(); }
+                                                            });
+                                                        }));
+                                                    });
+
+                                                    await Promise.all(tasks);
+                                                    if (extZip) {
+                                                        const zipContent = await extZip.generateAsync({ type: "blob" });
+                                                        createDownloadTag(createURL(zipContent), "sprites.zip");
+                                                    }
+                                                });
 
                                                 const btn = createTagClass("button", "gifAdjustSubmit", null, popup);
                                                 setHTML(btn, "적용");
@@ -1896,6 +2024,15 @@ input[type=checkbox]:checked::after {
                     floatingBtn.addEventListener("click", () => {
                         floatingBtn.remove();
                         alert_tag.style.display = "flex";
+
+                        document.querySelectorAll(".arcacon-wrapper").forEach(wrapper => {
+                            const chk = wrapper.querySelector("input[type='checkbox']");
+                            if (chk) chk.remove();
+                            const children = Array.from(wrapper.childNodes);
+                            children.forEach(child => wrapper.parentNode.insertBefore(child, wrapper));
+                            wrapper.remove();
+                        });
+
                         const selectedUrls = urls.filter(u => selectedIdxs.has(u.index));
                         if (selectedUrls.length > 0) {
                             setStatus(`선택된 이미지 ${selectedUrls.length} 개 다운로드 준비 중...`);
