@@ -824,16 +824,27 @@ input[type=checkbox]:checked::after {
 
         saveSettings(1);
         (async () => {
-            const loadJavaScript = (url) => {
+            const loadJavaScript = async (url, patchFunc) => {
                 // 비동기로 js 파일을 불러온다.
-                return new Promise((resolve, reject) => {
-                    const script = createTag("script");
-                    script.src = url;
-                    script.async = true;
-                    script.onload = () => resolve();
-                    script.onerror = () => reject();
-                    document.head.appendChild(script);
-                });
+                try {
+                    let src = url;
+                    if (patchFunc) {
+                        const res = await fetch(url);
+                        let text = await res.text();
+                        text = patchFunc(text);
+                        src = createURL(new Blob([text], { type: 'application/javascript' }));
+                    }
+                    return new Promise((resolve, reject) => {
+                        const script = createTag("script");
+                        script.src = src;
+                        script.async = true;
+                        script.onload = () => resolve();
+                        script.onerror = () => reject();
+                        document.head.appendChild(script);
+                    });
+                } catch (e) {
+                    return Promise.reject(e);
+                }
             };
 
             // JSZip 변수가 없을 경우 ( JSZip 이 로드가 안된경우 )
@@ -850,7 +861,8 @@ input[type=checkbox]:checked::after {
 
             // GIFS 변수가 없을 경우 ( GIFS 이 로드가 안된경우 )
             if (gifEditChk.checked && checkFunc("GIFS")) {
-                await loadJavaScript(GIF_EDIT_URL);
+                // gif 프레임 추출할 때 잔상 남는 버그 제거
+                await loadJavaScript(GIF_EDIT_URL, (text) => text.split("if(!c||f[d*s+p]!==h)").join("if(true)"));
 
                 // 그래도 GIFS 변수가 없을 경우
                 if (checkFunc("GIFS")) {
