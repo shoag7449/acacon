@@ -822,7 +822,7 @@ input[type=checkbox]:checked::after {
                 '3. 개드립콘 다운로드 가능.\n' +
                 '4. 인벤스티커 다운로드 가능.');
 
-        saveSettings(1);
+        saveSettings(!isSelectMode && 1);
         (async () => {
             const loadJavaScript = async (url, patchFunc) => {
                 // 비동기로 js 파일을 불러온다.
@@ -998,7 +998,7 @@ input[type=checkbox]:checked::after {
 
                 /*
                     gif, png 원본 추출
-
+    
                     1. 아카라이브는 트래픽 절감을 위해 gif 를 mp4로 변환해서 표시한다. 
                     2. 디시인사이드도 마찬가지로 트래픽 절감을 위해 gif를 mp4로 변환하나, 
                     디시콘샵에서는 gif 원본이 출력되기 때문에 별도의 gif 원본 api를 이용 안 해도 된다.
