@@ -1,0 +1,67 @@
+{
+    "path": "20241017/onnx_models/cunet/art",
+    "metadata": {},
+    "files": [
+        {
+            "name": "noise0.onnx",
+            "type": "local",
+            "mark": {},
+            "metadata": {}
+        },
+        {
+            "name": "noise0_scale2x.onnx",
+            "type": "local",
+            "mark": {},
+            "metadata": {}
+        },
+        {
+            "name": "noise1.onnx",
+            "type": "local",
+            "mark": {},
+            "metadata": {}
+        },
+        {
+            "name": "noise1_scale2x.onnx",
+            "type": "local",
+            "mark": {},
+            "metadata": {}
+        },
+        {
+            "name": "noise2.onnx",
+            "type": "local",
+            "mark": {},
+            "metadata": {}
+        },
+        {
+            "name": "noise2_scale2x.onnx",
+            "type": "local",
+            "mark": {},
+            "metadata": {}
+        },
+        {
+            "name": "noise3.onnx",
+            "type": "local",
+            "mark": {},
+            "metadata": {}
+        },
+        {
+            "name": "noise3_scale2x.onnx",
+            "type": "local",
+            "mark": {},
+            "metadata": {}
+        },
+        {
+            "name": "scale1x.onnx",
+            "type": "local",
+            "mark": {},
+            "metadata": {}
+        },
+        {
+            "name": "scale2x.onnx",
+            "type": "local",
+            "mark": {},
+            "metadata": {}
+        }
+    ],
+    "folders": []
+}

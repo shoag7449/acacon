@@ -1,0 +1,19 @@
+{
+    "path": "20241017/onnx_models/swin_unet",
+    "metadata": {},
+    "files": [],
+    "folders": [
+        {
+            "name": "art",
+            "metadata": {}
+        },
+        {
+            "name": "art_scan",
+            "metadata": {}
+        },
+        {
+            "name": "photo",
+            "metadata": {}
+        }
+    ]
+}
