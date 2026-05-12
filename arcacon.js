@@ -2157,8 +2157,16 @@ input[type=checkbox]:checked::after {
                                     setTimeout(revokURL, 300, oldUrl);
                                 }
                                 it.tmpBlob = blob;
-                                it.info.imgtag.src = createURL(blob);
-                                setHTML(it.info.nametag, it.name + "<br>" + (prefix || "") + humanFileSize(blob.size));
+                                const blobUrl = createURL(blob);
+                                it.info.imgtag.src = blobUrl;
+                                const tmpImg = new Image();
+                                tmpImg.onload = () => {
+                                    setHTML(it.info.nametag, it.name + "<br>" + tmpImg.naturalWidth + "x" + tmpImg.naturalHeight + "<br>" + (prefix || "") + humanFileSize(blob.size));
+                                };
+                                tmpImg.onerror = () => {
+                                    setHTML(it.info.nametag, it.name + "<br>" + (prefix || "") + humanFileSize(blob.size));
+                                };
+                                tmpImg.src = blobUrl;
                             }
                                 ;
 
@@ -2170,8 +2178,14 @@ input[type=checkbox]:checked::after {
                                 img.addEventListener("click", () => img.classList.toggle("zoom"));
                                 item.info.imgtag = img;
                                 const nameTag = createTagClass("div", "gifEditfrmItemInfo", null, cell);
-                                setHTML(nameTag, item.name + "<br>" + humanFileSize(item.blob.size));
+                                setHTML(nameTag, item.name + "<br>...<br>" + humanFileSize(item.blob.size));
                                 item.info.nametag = nameTag;
+                                // 이미지 크기 표시 (비동기 로드)
+                                const sizeImg = new Image();
+                                sizeImg.onload = () => {
+                                    setHTML(nameTag, item.name + "<br>" + sizeImg.naturalWidth + "x" + sizeImg.naturalHeight + "<br>" + humanFileSize(item.blob.size));
+                                };
+                                sizeImg.src = item.url;
                                 const btnGrp = createTagClass("div", "gifEditfrmBtnGrp", null, cell);
                                 const dlBtn = createTagClass("button", "gifEditfrmBtn", null, btnGrp);
                                 setHTML(dlBtn, "다운");
