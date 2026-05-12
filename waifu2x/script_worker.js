@@ -588,6 +588,8 @@ const onnx_runner = {
 (function () {
     ort.env.wasm.proxy = false;
     ort.env.wasm.numThreads = 1; // Worker당 1 WASM 스레드 (병렬 Worker 구조에서 최적)
+    // Blob Worker에서는 상대경로로 WASM을 찾을 수 없으므로 CDN 절대경로 지정
+    ort.env.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/";
 
     WAIFU2X = async (image_data, options) => {
         const opModel = options.model.split(",");
