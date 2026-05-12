@@ -2187,10 +2187,144 @@ input[type=checkbox]:checked::after {
                                     createDownloadTag(createURL(item.tmpBlob), item.name).click();
                                 }
                                 );
+                                // GIF인 경우 편집 버튼 추가
+                                if (item.extension === "gif") {
+                                    if (!item.options) item.options = options_info();
+                                    const editBtn = createTagClass("button", "gifEditfrmBtn", null, btnGrp);
+                                    setHTML(editBtn, "편집");
+                                    editBtn.addEventListener("click", (ev) => {
+                                        ev.stopPropagation();
+                                        // 기존 팝업 제거
+                                        const old = document.getElementsByClassName("gifAdjustPopup");
+                                        if (old && old[0]) old[0].remove();
+
+                                        const popup = createTagClass("div", "gifAdjustPopup");
+                                        append(document.body, popup);
+                                        setAttr(popup, "role", "dialog");
+                                        setAttr(popup, "aria-modal", "true");
+
+                                        const closeP = createTagClass("button", "close-btn", null, popup);
+                                        setAttr(closeP, "aria-label", "닫기");
+                                        setHTML(closeP, "&times;");
+                                        closeP.addEventListener("click", e2 => { e2.stopPropagation(); popup.remove(); });
+
+                                        setTimeout(() => {
+                                            const btnRect = editBtn.getBoundingClientRect();
+                                            const pw = popup.offsetWidth, ph = popup.offsetHeight;
+                                            const vw = window.innerWidth, vh = window.innerHeight;
+                                            let px = btnRect.left + btnRect.width / 2 - pw / 2;
+                                            if (px + pw > vw) px = vw - pw - 8;
+                                            if (px < 0) px = 8;
+                                            let py = btnRect.bottom + 8;
+                                            if (py + ph > vh) py = btnRect.top - ph - 8;
+                                            if (py < 0) py = Math.max(8, (vh - ph) / 2);
+                                            popup.style.left = px + "px";
+                                            popup.style.top = py + "px";
+                                            popup.classList.add("visible");
+                                        }, 100);
+
+                                        const oc = e2 => { if (!popup.contains(e2.target) && e2.target !== editBtn) { popup.remove(); document.removeEventListener("click", oc); } };
+                                        document.addEventListener("click", oc);
+
+                                        // 속도
+                                        const pr1 = createTagClass("div", "popup-row", null, popup);
+                                        const c1 = createControl("checkbox", createTagHTML("label", "속도 변경", pr1), true);
+                                        const l1 = createTagHTML("label", "", pr1);
+                                        const r1 = createControl("range", l1);
+                                        const v1 = createTagHTML("div", "100%", l1);
+                                        createTagHTML("label", "느림 <-----------> 빠름", pr1);
+                                        setAttr(r1, "min", "1"); setAttr(r1, "max", "400");
+                                        r1.oninput = r1.onchange = function() { setHTML(v1, this.value + "%"); };
+
+                                        // 프레임 스킵
+                                        const pr2 = createTagClass("div", "popup-row", null, popup);
+                                        const c2 = createControl("checkbox", createTagHTML("label", "프레임 스킵", pr2), true);
+                                        const t2 = createControl("text", createTagHTML("label", "건너뛸 수: ", pr2));
+                                        t2.addEventListener("input", function() { this.value = this.value.replace(/[^0-9]/g, ""); });
+                                        const t2_1 = createControl("text", createTagHTML("label", "제거할 수: ", pr2));
+                                        t2_1.addEventListener("input", function() { this.value = this.value.replace(/[^0-9]/g, ""); });
+
+                                        // 밝기 / 샤픈
+                                        const pr3 = createTagClass("div", "popup-row", null, popup);
+                                        const c3 = createControl("checkbox", createTagHTML("label", "밝기 조절", pr3), true);
+                                        const l3 = createTagHTML("label", "", pr3);
+                                        const r3 = createControl("range", l3);
+                                        const v3 = createTagHTML("div", "100%", l3);
+                                        setAttr(r3, "min", "0"); setAttr(r3, "max", "200");
+                                        r3.oninput = r3.onchange = function() { setHTML(v3, this.value + "%"); };
+
+                                        const c4 = createControl("checkbox", createTagHTML("label", "샤픈 조절", pr3), true);
+                                        const l4 = createTagHTML("label", "", pr3);
+                                        const r4 = createControl("range", l4);
+                                        const v4 = createTagHTML("div", "100%", l4);
+                                        setAttr(r4, "min", "0"); setAttr(r4, "max", "200");
+                                        r4.oninput = r4.onchange = function() { setHTML(v4, this.value + "%"); };
+
+                                        // 최적화
+                                        const pr4 = createTagClass("div", "popup-row", null, popup);
+                                        const c5 = createControl("checkbox", createTagHTML("label", "투명도 최적화", pr4), true);
+                                        const l5 = createTagHTML("label", "", pr4);
+                                        const r5 = createControl("range", l5);
+                                        const v5 = createTagHTML("div", "3%", l5);
+                                        setAttr(r5, "min", "0"); setAttr(r5, "max", "100");
+                                        r5.oninput = r5.onchange = function() { setHTML(v5, this.value + "%"); };
+
+                                        const c6 = createControl("checkbox", createTagHTML("label", "색상 최적화", pr4), true);
+                                        const l6 = createTagHTML("label", "", pr4);
+                                        const r6 = createControl("range", l6);
+                                        const v6 = createTagHTML("div", "6", l6);
+                                        setAttr(r6, "min", "0"); setAttr(r6, "max", "100");
+                                        r6.oninput = r6.onchange = function() { setHTML(v6, this.value); };
+
+                                        // 현재 옵션 복원
+                                        const op = item.options;
+                                        c1.checked = op.speed.enable ?? false; r1.value = op.speed.speed ?? 100; r1.onchange();
+                                        c2.checked = op.skipFrame.enable ?? false; t2.value = op.skipFrame.skip ?? 1; t2_1.value = op.skipFrame.frameCount ?? 1;
+                                        c3.checked = op.brightnessFrame.enable ?? false; r3.value = op.brightnessFrame.brightness ?? 100; r3.onchange();
+                                        c4.checked = op.sharpenFrame.enable ?? false; r4.value = op.sharpenFrame.sharpen ?? 100; r4.onchange();
+                                        c5.checked = op.optimize.enable ?? false; r5.value = op.optimize.threshold ?? 3; r5.onchange();
+                                        c6.checked = op.quality.enable ?? false; r6.value = op.quality.quality ?? 6; r6.onchange();
+
+                                        // 적용 버튼
+                                        const applyBtn = createTagClass("button", "gifAdjustSubmit", null, popup);
+                                        setHTML(applyBtn, "적용");
+                                        applyBtn.addEventListener("click", async (e2) => {
+                                            e2.stopPropagation();
+                                            const sp = parseInt(r1.value), sk = parseInt(t2.value), fc = parseInt(t2_1.value);
+                                            const br = parseInt(r3.value), sh = parseInt(r4.value), th = parseInt(r5.value), qu = parseInt(r6.value);
+                                            op.speed.enable = c1.checked; op.speed.speed = sp;
+                                            op.skipFrame.enable = c2.checked; op.skipFrame.skip = sk; op.skipFrame.frameCount = fc;
+                                            op.brightnessFrame.enable = c3.checked; op.brightnessFrame.brightness = br;
+                                            op.sharpenFrame.enable = c4.checked; op.sharpenFrame.sharpen = sh;
+                                            op.optimize.enable = c5.checked; op.optimize.threshold = th;
+                                            op.quality.enable = c6.checked; op.quality.quality = qu;
+
+                                            const ab = await item.tmpBlob.arrayBuffer();
+                                            const eg = GIFS();
+                                            eg.changeGif({
+                                                buffer: ab,
+                                                repeat: true,
+                                                quality: c6.checked ? qu : 6,
+                                                percentSpeed: c1.checked ? sp / 100 : null,
+                                                skipFrame: op.skipFrame,
+                                                brightnessFrame: op.brightnessFrame,
+                                                sharpenFrame: op.sharpenFrame,
+                                                optimize: op.optimize,
+                                                oncomplete: (blob) => {
+                                                    item.tmpBlob = blob;
+                                                    upSetImgBlob(idx, blob, "★ ");
+                                                },
+                                                onerror: e3 => { console.error(e3); }
+                                            });
+                                            popup.remove();
+                                        });
+                                    });
+                                }
                                 const origBtn = createTagClass("button", "gifEditfrmBtn", null, btnGrp);
                                 setHTML(origBtn, "원본");
                                 origBtn.addEventListener("click", () => {
                                     item.tmpBlob = item.blob;
+                                    if (item.options) item.options = options_info();
                                     upSetImgBlob(idx, item.blob, "");
                                     cell.style.borderColor = "#e2e8f0";
                                 }
@@ -2250,6 +2384,18 @@ input[type=checkbox]:checked::after {
                             const upScaleSel = mkRow(upOpt, "스케일", [["scale2x", "2x"], ["scale4x", "4x"]], "200px");
                             const upNoiseSel = mkRow(upOpt, "노이즈 제거", [["none", "없음"], ["noise0", "약"], ["noise1", "중"], ["noise2", "강"], ["noise3", "최강"]], "200px");
                             const upTileSel = mkRow(upOpt, "타일", [["64", "64"], ["128", "128"], ["256", "256"]], "200px");
+
+                            // CUNet은 scale4x 미지원 → 동적 제한
+                            const scale4xOpt = upScaleSel.querySelector('option[value="scale4x"]');
+                            const syncScaleLimit = () => {
+                                const isCunet = upModelSel.value.startsWith("cunet");
+                                if (scale4xOpt) {
+                                    scale4xOpt.disabled = isCunet;
+                                    if (isCunet && upScaleSel.value === "scale4x") upScaleSel.value = "scale2x";
+                                }
+                            };
+                            upModelSel.addEventListener("change", syncScaleLimit);
+                            syncScaleLimit();
 
                             const upAlphaRow = createTagClass("div", "selLbl");
                             const upAlphaChk = makeChkbox(upAlphaRow, "알파 채널 유지");
