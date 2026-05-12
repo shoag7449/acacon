@@ -28,6 +28,9 @@
     const FFMPEG_CORE_JS_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.min.js"; // gif 파일 변환 관련 모듈
     const FFMPEG_CORE_WASM_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm"; // gif 파일 변환 관련 모듈
     const GIF_EDIT_URL = "https://shoag7449.github.io/acacon/gifs.js"; // gif 파일 편집 관련 모듈
+    const ONNX_RUNTIME_URL = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.all.min.js"; // waifu2x ONNX 런타임
+    const WAIFU2X_WORKER_URL = "https://shoag7449.github.io/acacon/waifu2x/script_worker.js"; // waifu2x 워커 스크립트
+    const WAIFU2X_MODEL_BASE = "https://shoag7449.github.io/acacon/waifu2x"; // waifu2x 모델 기본 경로
     const MODERN_CSS_TEXT = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
@@ -719,6 +722,9 @@ input[type=checkbox]:checked::after {
     const gifConvChk = makeChkbox(form, "GIF 변환");
     const gifEditChk = makeChkbox(form, "GIF 편집");
     const pngConvChk = makeChkbox(form, "PNG 변환");
+    const upscaleChk = makeChkbox(form, "🔍 업스케일링");
+    gifEditChk.addEventListener("change", () => { if (gifEditChk.checked) upscaleChk.checked = false; });
+    upscaleChk.addEventListener("change", () => { if (upscaleChk.checked) gifEditChk.checked = false; });
 
     // gif 화질 설정칸
     const lossySelectLabel = createTagClass("label", "selLbl", null, form);
@@ -748,6 +754,7 @@ input[type=checkbox]:checked::after {
     gifConvChk.checked = (localStorage.getItem(F366C_STR + "chk1") ?? "true") === "true";
     gifEditChk.checked = (localStorage.getItem(F366C_STR + "chk2") ?? "false") === "true";
     pngConvChk.checked = (localStorage.getItem(F366C_STR + "chk3") ?? "true") === "true";
+    upscaleChk.checked = (localStorage.getItem(F366C_STR + "chk4") ?? "false") === "true";
 
     const savedLossyValue = setMinMax(localStorage.getItem(F366C_STR + "lossyval"), 1, 100, 100);
     lossySelectCombo.value = savedLossyValue;
@@ -822,6 +829,7 @@ input[type=checkbox]:checked::after {
         localStorage.setItem(F366C_STR + "chk1", gifConvChk.checked);
         localStorage.setItem(F366C_STR + "chk2", gifEditChk.checked);
         localStorage.setItem(F366C_STR + "chk3", pngConvChk.checked);
+        localStorage.setItem(F366C_STR + "chk4", upscaleChk.checked);
         localStorage.setItem(F366C_STR + "lossyval", lossySelectCombo.value);
         localStorage.setItem(F366C_STR + "fpsval", fpsSelectCombo.value);
         localStorage.setItem(F366C_STR, e);
@@ -874,7 +882,7 @@ input[type=checkbox]:checked::after {
             }
 
             // GIFS 변수가 없을 경우 ( GIFS 이 로드가 안된경우 )
-            if (gifEditChk.checked && checkFunc("GIFS")) {
+            if ((gifEditChk.checked || upscaleChk.checked) && checkFunc("GIFS")) {
                 // gif 프레임 추출할 때 잔상 남는 버그 제거
                 await loadJavaScript(GIF_EDIT_URL, (text) => text.split("if(!c||f[d*s+p]!==h)").join("if(true)"));
 
@@ -885,6 +893,7 @@ input[type=checkbox]:checked::after {
                     return;
                 }
             }
+
 
             const convertPng = (blob) => {
                 // 이미지를 png로 변환하는 함수
@@ -1206,6 +1215,7 @@ input[type=checkbox]:checked::after {
                 let successCnt = 0;
                 let failCnt = 0;
                 const gifs = [];
+                const upscaleItems = [];
 
                 const options_info = () => {
                     return {
@@ -1287,6 +1297,16 @@ input[type=checkbox]:checked::after {
                                 const filename = setFilename(emoObj.index, "gif");
                                 jsZip.file(filename, gb);
 
+                                if (upscaleChk.checked)
+                                    upscaleItems.push({
+                                        url: createURL(gb),
+                                        blob: gb,
+                                        tmpBlob: gb,
+                                        name: filename,
+                                        extension: "gif",
+                                        info: { itemtag: null, nametag: null, imgtag: null }
+                                    });
+
                                 if (gifEditChk.checked)
                                     gifs.push({
                                         url: createURL(gb),
@@ -1313,7 +1333,19 @@ input[type=checkbox]:checked::after {
 
                             if (gb) {
                                 // zip 파일에 변환한 png 파일을 추가한다.
-                                jsZip.file(setFilename(emoObj.index, "png"), gb);
+                                const pngFilename = setFilename(emoObj.index, "png");
+                                jsZip.file(pngFilename, gb);
+
+                                if (upscaleChk.checked)
+                                    upscaleItems.push({
+                                        url: createURL(gb),
+                                        blob: gb,
+                                        tmpBlob: gb,
+                                        name: pngFilename,
+                                        extension: "png",
+                                        info: { itemtag: null, nametag: null, imgtag: null }
+                                    });
+
                                 al = false;
                             }
                             else
@@ -1337,6 +1369,16 @@ input[type=checkbox]:checked::after {
                                         imgtag: null,
                                         options: options_info()
                                     }
+                                });
+
+                            if (upscaleChk.checked && emoObj.extension !== "mp4")
+                                upscaleItems.push({
+                                    url: createURL(blob),
+                                    blob: blob,
+                                    tmpBlob: blob,
+                                    name: filename,
+                                    extension: emoObj.extension,
+                                    info: { itemtag: null, nametag: null, imgtag: null }
                                 });
                         }
 
@@ -1560,6 +1602,7 @@ input[type=checkbox]:checked::after {
 
                                 const btn4 = createTagClass("button", "gifEditfrmBtn", null, buttonGroup);
                                 setHTML(btn4, "원본");
+
 
                                 _gif.info.imgtag = img;
                                 _gif.info.nametag = name;
@@ -1941,11 +1984,200 @@ input[type=checkbox]:checked::after {
                                     }
                                 });
 
+
                                 append(form, item);
                             });
 
                             append(document.body, form);
                         }
+
+                        /*
+                            *************************************************************************
+                            ******************************* 업스케일링 *******************************
+                            *************************************************************************
+                        */
+
+                        if (upscaleChk.checked && upscaleItems.length > 0) {
+                            const upForm = createTagClass("div", "gifEditfrm");
+
+                            const close_btn2 = createTagClass("button", "close-btn", null, upForm);
+                            setHTML(close_btn2, "&times;");
+                            close_btn2.addEventListener('click', () => upForm.remove());
+                            upForm.addEventListener('scroll', () => { close_btn2.style.top = (upForm.scrollTop + 16) + 'px'; });
+
+                            const upSetImgBlob = (index, blob, prefix) => {
+                                const it = upscaleItems[index];
+                                const oldUrl = it.info.imgtag.src;
+                                if (oldUrl && oldUrl.startsWith('blob:')) { it.info.imgtag.src = ""; setTimeout(revokURL, 300, oldUrl); }
+                                it.tmpBlob = blob;
+                                it.info.imgtag.src = createURL(blob);
+                                setHTML(it.info.nametag, it.name + "<br>" + (prefix||"") + humanFileSize(blob.size));
+                            };
+
+                            upscaleItems.forEach((item, idx) => {
+                                const cell = createTagClass("div", "gifEditfrmItem");
+                                const img = createTagClass("img", "gifEditfrmItemImg", null, cell);
+                                img.className += " transp_bg"; img.src = item.url;
+                                img.addEventListener("click", () => img.classList.toggle("zoom"));
+                                item.info.imgtag = img;
+                                const nameTag = createTagClass("div", "gifEditfrmItemInfo", null, cell);
+                                setHTML(nameTag, item.name + "<br>" + humanFileSize(item.blob.size));
+                                item.info.nametag = nameTag;
+                                const btnGrp = createTagClass("div", "gifEditfrmBtnGrp", null, cell);
+                                const dlBtn = createTagClass("button", "gifEditfrmBtn", null, btnGrp);
+                                setHTML(dlBtn, "다운");
+                                dlBtn.addEventListener("click", () => { createDownloadTag(createURL(item.tmpBlob), item.name).click(); });
+                                const origBtn = createTagClass("button", "gifEditfrmBtn", null, btnGrp);
+                                setHTML(origBtn, "원본");
+                                origBtn.addEventListener("click", () => { item.tmpBlob = item.blob; upSetImgBlob(idx, item.blob, ""); cell.style.borderColor = "#e2e8f0"; });
+                                item.info.itemtag = cell;
+                                append(upForm, cell);
+                            });
+
+                            // 일괄 다운로드
+                            const batchCell = createTagClass("div", "gifEditfrmItem");
+                            const batchImg = createTagClass("img", "gifEditfrmItemImg_", null, batchCell);
+                            batchImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAAAWVJREFUeF7t00ERAAAIhECvf2lr7AMTMODtOsrAKJpgriDYExSkIJgBDKeFFAQzgOG0kIJgBjCcFlIQzACG00IKghnAcFpIQTADGE4LKQhmAMNpIQXBDGA4LaQgmAEMp4UUBDOA4bSQgmAGMJwWUhDMAIbTQgqCGcBwWkhBMAMYTgspCGYAw2khBcEMYDgtpCCYAQynhRQEM4DhtJCCYAYwnBZSEMwAhtNCCoIZwHBaSEEwAxhOCykIZgDDaSEFwQxgOC2kIJgBDKeFFAQzgOG0kIJgBjCcFlIQzACG00IKghnAcFpIQTADGE4LKQhmAMNpIQXBDGA4LaQgmAEMp4UUBDOA4bSQgmAGMJwWUhDMAIbTQgqCGcBwWkhBMAMYTgspCGYAw2khBcEMYDgtpCCYAQynhRQEM4DhtJCCYAYwnBZSEMwAhtNCCoIZwHBaSEEwAxhOCykIZgDDaSEFwQxgOC0EC/KEzwBlGO+pQQAAAABJRU5ErkJggg==";
+                            const batchName = createTagClass("div", "gifEditfrmItemInfo", null, batchCell);
+                            setHTML(batchName, "일괄<br>다운로드");
+                            const batchBtnGrp = createTagClass("div", "gifEditfrmBtnGrp", null, batchCell);
+                            const batchDlBtn = createTagClass("button", "gifEditfrmBtn", null, batchBtnGrp);
+                            setHTML(batchDlBtn, "ZIP 다운"); batchDlBtn.style.gridColumn = "1 / -1";
+                            batchDlBtn.addEventListener("click", async () => {
+                                try { upscaleItems.forEach(it => jsZip.file(it.name, it.tmpBlob));
+                                    createDownloadTag(createURL(await jsZip.generateAsync({type:"blob"})), "upscaled.zip");
+                                } catch(e) { console.error(e); }
+                            });
+                            append(upForm, batchCell);
+
+                            // 옵션 패널 (아이템 아래)
+                            const upOpt = createTagClass("div","");
+                            upOpt.style.cssText = "width:100%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;";
+                            const upOptT = createTagHTML("div","🔍 업스케일 설정");
+                            upOptT.style.cssText = "font-weight:600;font-size:14px;margin-bottom:4px;";
+                            append(upOpt, upOptT);
+
+                            const mkRow = (parent, label, options, width) => {
+                                const row = createTagClass("div","selLbl");
+                                createTagClass("span","mainfrmSpan",label,row);
+                                const sel = createTagClass("select","mainfrmSelect",null,row);
+                                sel.style.width = width || "180px";
+                                options.forEach(([v,t])=>{const o=createTagClass("option","",t);o.value=v;append(sel,o);});
+                                append(parent,row);
+                                return sel;
+                            };
+
+                            const upModelSel = mkRow(upOpt,"모델",[["swin_unet,art","🎨 SwinUNet Art"],["swin_unet,art_scan","🎨 SwinUNet Art Scan"],["swin_unet,photo","📷 SwinUNet Photo"],["cunet,art","🎨 CUNet Art"]],"200px");
+                            const upScaleSel = mkRow(upOpt,"스케일",[["scale2x","2x"],["scale4x","4x"]],"200px");
+                            const upNoiseSel = mkRow(upOpt,"노이즈 제거",[["none","없음"],["noise0","약"],["noise1","중"],["noise2","강"],["noise3","최강"]],"200px");
+                            const upTileSel = mkRow(upOpt,"타일",[["64","64"],["128","128"],["256","256"]],"200px");
+                            upTileSel.value = "64";
+
+                            const upAlphaChk = makeChkbox(upOpt, "알파 채널 유지");
+                            upAlphaChk.checked = false;
+
+                            // 프로그레스
+                            const upPW = createTagClass("div","");
+                            upPW.style.cssText = "width:100%;background:#e5e7eb;border-radius:8px;height:24px;overflow:hidden;position:relative;";
+                            const upPB = createTagClass("div","");
+                            upPB.style.cssText = "height:100%;width:0%;background:linear-gradient(135deg,#10b981,#059669);transition:width 0.3s;border-radius:8px;";
+                            const upPT = createTagClass("span","");
+                            upPT.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;font-weight:600;color:#374151;";
+                            upPT.textContent = "대기 중";
+                            append(upPW,upPB);append(upPW,upPT);append(upOpt,upPW);
+
+                            const upBtn = createTagClass("button","mainfrmBtn1","🔍 업스케일 시작");
+                            upBtn.style.cssText = "width:100%;background:linear-gradient(135deg,#8b5cf6,#6d28d9);";
+                            append(upOpt,upBtn);
+                            append(upForm,upOpt);
+                            append(document.body,upForm);
+
+                            let upCancelled = false;
+                            upBtn.addEventListener("click", async () => {
+                                // 진행 중이면 정지
+                                if (upBtn.dataset.running === "1") { upCancelled = true; upBtn.dataset.running = "0"; upBtn.textContent = "🔍 업스케일 시작"; upPT.textContent = "⏸️ 정지됨"; return; }
+                                upCancelled = false; upBtn.dataset.running = "1";
+                                upBtn.textContent = "⏹ 정지";
+                                upPB.style.width = "0%"; upPT.textContent = "준비 중...";
+                                const mBase=upModelSel.value, sVal=upScaleSel.value, nVal=upNoiseSel.value;
+                                const tile=parseInt(upTileSel.value), alpha=upAlphaChk.checked;
+                                const scale = sVal==="scale4x"?4:2;
+                                const model = mBase+","+(nVal!=="none"?nVal+"_":"")+sVal;
+                                const alphaM = alpha?mBase+","+sVal:null;
+
+                                if (!window.__waifu2xWorkers) {
+                                    upPT.textContent = "waifu2x 로딩 중...";
+                                    try {
+                                        const [a,b] = await Promise.all([fetch(ONNX_RUNTIME_URL),fetch(WAIFU2X_WORKER_URL)]);
+                                        const code = (await a.text())+"\n;\n"+(await b.text());
+                                        const bUrl = createURL(new Blob([code],{type:'application/javascript'}));
+                                        const n = Math.min(navigator.hardwareConcurrency||2,8), ws=[], ps=[];
+                                        for(let i=0;i<n;i++){const w=new Worker(bUrl);ps.push(new Promise(r=>{w.onmessage=e=>{if(e.data.type==="ready")r();};}));w.postMessage({type:"init",modelBase:WAIFU2X_MODEL_BASE});ws.push(w);}
+                                        await Promise.all(ps); window.__waifu2xWorkers=ws;
+                                    } catch(e){upPT.textContent="로딩 실패: "+e.message;upBtn.dataset.running="0";upBtn.textContent="🔍 업스케일 시작";return;}
+                                }
+                                const pool=window.__waifu2xWorkers;
+                                let done=0; const total=upscaleItems.length;
+                                const prog=(extra)=>{const p=Math.round(done/total*100);upPB.style.width=p+"%";upPT.textContent=`${done}/${total} (${p}%)`+(extra||"");};
+
+                                // 동적 워커 디스패치: 유휴 워커에 즉시 작업 할당
+                                const wFree = pool.map(() => true);
+                                const pending = [];
+                                const dispatch = (imageData, fid) => new Promise(resolve => {
+                                    const tryRun = () => {
+                                        if (upCancelled) { resolve(imageData); return; }
+                                        const wi = wFree.indexOf(true);
+                                        if (wi === -1) { pending.push(tryRun); return; }
+                                        wFree[wi] = false;
+                                        const wk = pool[wi];
+                                        const h = e => {
+                                            if (e.data.frameIndex === fid && (e.data.type === "result" || e.data.type === "error")) {
+                                                wk.removeEventListener("message", h);
+                                                wFree[wi] = true;
+                                                resolve(e.data.type === "result" ? e.data.imageData : imageData);
+                                                if (pending.length > 0) pending.shift()();
+                                            }
+                                        };
+                                        wk.addEventListener("message", h);
+                                        const cl = new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);
+                                        wk.postMessage({type:"process",frameIndex:fid,imageData:cl,options:{model,tile,tile_random:false,tta_level:0,alpha_enabled:alpha,alpha_config:alphaM}},[cl.data.buffer]);
+                                    };
+                                    tryRun();
+                                });
+
+                                const doStatic = async (item,idx) => {
+                                    if(upCancelled) return;
+                                    const im=new Image();await new Promise(r=>{im.onload=r;im.onerror=r;im.src=item.url;});
+                                    const c=document.createElement("canvas");c.width=im.naturalWidth;c.height=im.naturalHeight;
+                                    const cx=c.getContext("2d",{willReadFrequently:true});cx.drawImage(im,0,0);
+                                    const d=cx.getImageData(0,0,c.width,c.height);
+                                    const fid=idx*10000;
+                                    const res=await dispatch(d, fid);
+                                    const oc=document.createElement("canvas");oc.width=res.width;oc.height=res.height;oc.getContext("2d").putImageData(res,0,0);
+                                    const bl=await new Promise(r=>oc.toBlob(r,"image/png"));
+                                    if(bl){const nn=item.name.replace(/\.[^.]+$/,".png");jsZip.remove(item.name);jsZip.file(nn,bl);item.name=nn;item.tmpBlob=bl;upSetImgBlob(idx,bl,"🔍 ");item.info.itemtag.style.borderColor="#8b5cf6";}
+                                    done++;prog();
+                                };
+                                const doGif = async (item,idx) => {
+                                    if(upCancelled) return;
+                                    const ab=await item.tmpBlob.arrayBuffer();
+                                    const fOff=idx*10000;const bl=await new Promise(resolve=>{const eg=GIFS();eg.dec.load({files:[],buffers:[ab],oncomplete:async F=>{if(!F||!F[0]){resolve(null);return;}const g=F[0],fr=g.frames,oW=g.screenDescriptor.width,oH=g.screenDescriptor.height;const fl=fr.map((f,i)=>({index:i,imageData:(f.context||f.canvas.getContext("2d")).getImageData(0,0,f.canvas.width,f.canvas.height),delay:f.graphicsControl?f.graphicsControl.delay:5,disposal:f.graphicsControl?f.graphicsControl.disposal:0}));const uf=new Array(fl.length);let fDone=0;await Promise.all(fl.map(fd=>(async()=>{const gfid=fOff+fd.index;uf[fd.index]=await dispatch(fd.imageData,gfid);fDone++;prog(` │ 프레임 ${fDone}/${fl.length}`);})()));const enc=eg.enc();enc.setRepeat(0);enc.setQuality(6);enc.setGifSize(oW*scale,oH*scale);enc.start();for(let i=0;i<uf.length;i++){enc.setDelay((fl[i].delay||5)*10);enc.setDispose(fl[i].disposal);enc.addFrame(uf[i],true,false);}enc.finish();resolve(enc.toBlob());},onerror:()=>resolve(null)});});
+                                    if(bl){item.tmpBlob=bl;jsZip.file(item.name,bl);upSetImgBlob(idx,bl,"🔍 ");item.info.itemtag.style.borderColor="#8b5cf6";}
+                                    done++;prog();
+                                };
+
+                                // 아이템 큐: 워커 수만큼 러너 생성 + 동적 디스패치로 모든 워커 활용
+                                const q = upscaleItems.map((it,i)=>({item:it,idx:i}));
+                                const run = async()=>{while(q.length>0&&!upCancelled){const{item,idx}=q.shift();if(item.extension==="gif")await doGif(item,idx);else await doStatic(item,idx);}};
+                                await Promise.all(Array.from({length:Math.min(pool.length, q.length)},()=>run()));
+
+                                upBtn.dataset.running = "0";
+                                if(!upCancelled){ upPB.style.width="100%"; upPT.textContent="✅ 업스케일 완료!"; setStatus("업스케일 완료!"); }
+                                upBtn.textContent="🔍 업스케일 시작";
+                            });
+
+                        }
+
                     });
                 }; // End of executeDownloadsAndFinish
 
