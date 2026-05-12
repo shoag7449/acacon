@@ -454,7 +454,7 @@ const onnx_runner = {
         var progress = 0;
         console.time("render");
         // create index list
-        tiles = [];
+        var tiles = [];
         for (var h_i = 0; h_i < p.h_blocks; ++h_i) {
             for (var w_i = 0; w_i < p.w_blocks; ++w_i) {
                 const i = h_i * p.input_tile_step;
