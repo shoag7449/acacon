@@ -751,7 +751,7 @@ input[type=checkbox]:checked::after {
     const gifConvChk = makeChkbox(form, "GIF 변환");
     const gifEditChk = makeChkbox(form, "GIF 편집");
     const pngConvChk = makeChkbox(form, "PNG 변환");
-    const upscaleChk = makeChkbox(form, "🔍 업스케일링");
+    const upscaleChk = makeChkbox(form, "업스케일링 (waifu2x)");
     gifEditChk.addEventListener("change", () => {
         if (gifEditChk.checked)
             upscaleChk.checked = false;
@@ -2250,24 +2250,43 @@ input[type=checkbox]:checked::after {
                             const upScaleSel = mkRow(upOpt, "스케일", [["scale2x", "2x"], ["scale4x", "4x"]], "200px");
                             const upNoiseSel = mkRow(upOpt, "노이즈 제거", [["none", "없음"], ["noise0", "약"], ["noise1", "중"], ["noise2", "강"], ["noise3", "최강"]], "200px");
                             const upTileSel = mkRow(upOpt, "타일", [["64", "64"], ["128", "128"], ["256", "256"]], "200px");
-                            upTileSel.value = "64";
 
                             const upAlphaRow = createTagClass("div", "selLbl");
                             const upAlphaChk = makeChkbox(upAlphaRow, "알파 채널 유지");
-                            upAlphaChk.checked = false;
                             const upTranspColorLabel = createTagClass("span", "mainfrmSpan", "투명색", upAlphaRow);
                             upTranspColorLabel.style.marginLeft = "12px";
                             const upTranspColor = createControl("color", upAlphaRow);
-                            upTranspColor.value = "#00ff00";
                             upTranspColor.style.cssText = "width:32px;height:24px;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;padding:0;vertical-align:middle;";
-                            upTranspColorLabel.style.display = "none";
-                            upTranspColor.style.display = "none";
                             upAlphaChk.addEventListener("change", () => {
                                 const show = upAlphaChk.checked ? "inline" : "none";
                                 upTranspColorLabel.style.display = show;
                                 upTranspColor.style.display = show;
+                                saveUpOpts();
                             });
                             append(upOpt, upAlphaRow);
+
+                            // localStorage 저장/복원
+                            const UP_OPTS_KEY = "arcacon_upscale_opts";
+                            const saveUpOpts = () => {
+                                try { localStorage.setItem(UP_OPTS_KEY, JSON.stringify({ model: upModelSel.value, scale: upScaleSel.value, noise: upNoiseSel.value, tile: upTileSel.value, alpha: upAlphaChk.checked, transpColor: upTranspColor.value })); } catch (e) { }
+                            };
+                            try {
+                                const saved = JSON.parse(localStorage.getItem(UP_OPTS_KEY));
+                                if (saved) {
+                                    if (saved.model) upModelSel.value = saved.model;
+                                    if (saved.scale) upScaleSel.value = saved.scale;
+                                    if (saved.noise) upNoiseSel.value = saved.noise;
+                                    if (saved.tile) upTileSel.value = saved.tile;
+                                    if (saved.alpha !== undefined) upAlphaChk.checked = saved.alpha;
+                                    if (saved.transpColor) upTranspColor.value = saved.transpColor;
+                                }
+                            } catch (e) { }
+                            if (!upAlphaChk.checked) {
+                                upTranspColorLabel.style.display = "none";
+                                upTranspColor.style.display = "none";
+                            }
+                            [upModelSel, upScaleSel, upNoiseSel, upTileSel].forEach(s => s.addEventListener("change", saveUpOpts));
+                            upTranspColor.addEventListener("input", saveUpOpts);
 
                             // 프로그레스
                             const upPW = createTagClass("div", "");
@@ -2493,7 +2512,7 @@ input[type=checkbox]:checked::after {
                                                     const frame = uf[i];
                                                     if (hasAnyTransp && alpha) {
                                                         const tc = upTranspColor.value;
-                                                        const tR = parseInt(tc.slice(1,3),16), tG = parseInt(tc.slice(3,5),16), tB = parseInt(tc.slice(5,7),16);
+                                                        const tR = parseInt(tc.slice(1, 3), 16), tG = parseInt(tc.slice(3, 5), 16), tB = parseInt(tc.slice(5, 7), 16);
                                                         const transpKey = (tR << 16) | (tG << 8) | tB;
                                                         const d = frame.data;
                                                         let hasTranspPixel = false;
