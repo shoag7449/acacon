@@ -2390,6 +2390,11 @@ input[type=checkbox]:checked::after {
                             const upScaleSel = mkRow(upOpt, "스케일", [["scale2x", "2x"], ["scale4x", "4x"]], "200px");
                             const upNoiseSel = mkRow(upOpt, "노이즈 제거", [["none", "없음"], ["noise0", "약"], ["noise1", "중"], ["noise2", "강"], ["noise3", "최강"]], "200px");
                             const upTileSel = mkRow(upOpt, "타일", [["64", "64"], ["128", "128"], ["256", "256"]], "200px");
+                            // 기본값: CUNet Art, 2x, 최강, 64
+                            upModelSel.value = "cunet,art";
+                            upScaleSel.value = "scale2x";
+                            upNoiseSel.value = "noise3";
+                            upTileSel.value = "64";
 
                             // CUNet은 scale4x 미지원 → 동적 제한
                             const scale4xOpt = upScaleSel.querySelector('option[value="scale4x"]');
