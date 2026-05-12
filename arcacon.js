@@ -23,22 +23,14 @@
         9. 모바일 다운로드 (비공식)
     */
 
-    const PROXY_SERV_URL = "https://jfkskw.duckdns.org:17875/proxy?url=%%%ENCODEURL%%%";
-    // 디시콘, 개드립콘 프록시 서버 설정
-    const JS_ZIP_URL = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
-    // 압축 파일 관련 모듈
-    const FFMPEG_CORE_JS_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.min.js";
-    // gif 파일 변환 관련 모듈
-    const FFMPEG_CORE_WASM_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm";
-    // gif 파일 변환 관련 모듈
-    const GIF_EDIT_URL = "https://shoag7449.github.io/acacon/gifs.js";
-    // gif 파일 편집 관련 모듈
-    const ONNX_RUNTIME_URL = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.all.min.js";
-    // waifu2x ONNX 런타임
-    const WAIFU2X_WORKER_URL = "https://shoag7449.github.io/acacon/waifu2x/script_worker.js";
-    // waifu2x 워커 스크립트
-    const WAIFU2X_MODEL_BASE = "https://shoag7449.github.io/acacon/waifu2x";
-    // waifu2x 모델 기본 경로
+    const PROXY_SERV_URL = "https://jfkskw.duckdns.org:17875/proxy?url=%%%ENCODEURL%%%"; // 디시콘, 개드립콘 프록시 서버 설정
+    const JS_ZIP_URL = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"; // 압축 파일 관련 모듈
+    const FFMPEG_CORE_JS_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.min.js"; // gif 파일 변환 관련 모듈
+    const FFMPEG_CORE_WASM_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm";  // gif 파일 변환 관련 모듈
+    const GIF_EDIT_URL = "https://shoag7449.github.io/acacon/gifs.js";  // gif 파일 편집 관련 모듈
+    const ONNX_RUNTIME_URL = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.all.min.js"; // waifu2x ONNX 런타임
+    const WAIFU2X_WORKER_URL = "https://shoag7449.github.io/acacon/waifu2x/script_worker.js"; // waifu2x 워커 스크립트
+    const WAIFU2X_MODEL_BASE = "https://shoag7449.github.io/acacon/waifu2x"; // waifu2x 모델 기본 경로
     const MODERN_CSS_TEXT = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
@@ -2234,15 +2226,15 @@ input[type=checkbox]:checked::after {
                                         const v1 = createTagHTML("div", "100%", l1);
                                         createTagHTML("label", "느림 <-----------> 빠름", pr1);
                                         setAttr(r1, "min", "1"); setAttr(r1, "max", "400");
-                                        r1.oninput = r1.onchange = function() { setHTML(v1, this.value + "%"); };
+                                        r1.oninput = r1.onchange = function () { setHTML(v1, this.value + "%"); };
 
                                         // 프레임 스킵
                                         const pr2 = createTagClass("div", "popup-row", null, popup);
                                         const c2 = createControl("checkbox", createTagHTML("label", "프레임 스킵", pr2), true);
                                         const t2 = createControl("text", createTagHTML("label", "건너뛸 수: ", pr2));
-                                        t2.addEventListener("input", function() { this.value = this.value.replace(/[^0-9]/g, ""); });
+                                        t2.addEventListener("input", function () { this.value = this.value.replace(/[^0-9]/g, ""); });
                                         const t2_1 = createControl("text", createTagHTML("label", "제거할 수: ", pr2));
-                                        t2_1.addEventListener("input", function() { this.value = this.value.replace(/[^0-9]/g, ""); });
+                                        t2_1.addEventListener("input", function () { this.value = this.value.replace(/[^0-9]/g, ""); });
 
                                         // 밝기 / 샤픈
                                         const pr3 = createTagClass("div", "popup-row", null, popup);
@@ -2251,14 +2243,14 @@ input[type=checkbox]:checked::after {
                                         const r3 = createControl("range", l3);
                                         const v3 = createTagHTML("div", "100%", l3);
                                         setAttr(r3, "min", "0"); setAttr(r3, "max", "200");
-                                        r3.oninput = r3.onchange = function() { setHTML(v3, this.value + "%"); };
+                                        r3.oninput = r3.onchange = function () { setHTML(v3, this.value + "%"); };
 
                                         const c4 = createControl("checkbox", createTagHTML("label", "샤픈 조절", pr3), true);
                                         const l4 = createTagHTML("label", "", pr3);
                                         const r4 = createControl("range", l4);
                                         const v4 = createTagHTML("div", "100%", l4);
                                         setAttr(r4, "min", "0"); setAttr(r4, "max", "200");
-                                        r4.oninput = r4.onchange = function() { setHTML(v4, this.value + "%"); };
+                                        r4.oninput = r4.onchange = function () { setHTML(v4, this.value + "%"); };
 
                                         // 최적화
                                         const pr4 = createTagClass("div", "popup-row", null, popup);
@@ -2267,14 +2259,14 @@ input[type=checkbox]:checked::after {
                                         const r5 = createControl("range", l5);
                                         const v5 = createTagHTML("div", "3%", l5);
                                         setAttr(r5, "min", "0"); setAttr(r5, "max", "100");
-                                        r5.oninput = r5.onchange = function() { setHTML(v5, this.value + "%"); };
+                                        r5.oninput = r5.onchange = function () { setHTML(v5, this.value + "%"); };
 
                                         const c6 = createControl("checkbox", createTagHTML("label", "색상 최적화", pr4), true);
                                         const l6 = createTagHTML("label", "", pr4);
                                         const r6 = createControl("range", l6);
                                         const v6 = createTagHTML("div", "6", l6);
                                         setAttr(r6, "min", "0"); setAttr(r6, "max", "100");
-                                        r6.oninput = r6.onchange = function() { setHTML(v6, this.value); };
+                                        r6.oninput = r6.onchange = function () { setHTML(v6, this.value); };
 
                                         // 현재 옵션 복원
                                         const op = item.options;
@@ -2572,12 +2564,14 @@ input[type=checkbox]:checked::after {
                                     if (upCancelled)
                                         return;
                                     const im = new Image();
+                                    let loaded = false;
                                     await new Promise(r => {
-                                        im.onload = r;
+                                        im.onload = () => { loaded = true; r(); };
                                         im.onerror = r;
                                         im.src = item.url;
                                     }
                                     );
+                                    if (!loaded || !im.naturalWidth) { done++; prog(); return; }
                                     const c = document.createElement("canvas");
                                     c.width = im.naturalWidth;
                                     c.height = im.naturalHeight;
@@ -2599,6 +2593,8 @@ input[type=checkbox]:checked::after {
                                         jsZip.file(nn, bl);
                                         item.name = nn;
                                         item.tmpBlob = bl;
+                                        item.blob = bl;
+                                        item.url = createURL(bl);
                                         upSetImgBlob(idx, bl, "🔍 ");
                                         item.info.itemtag.style.borderColor = "#8b5cf6";
                                     }
@@ -2692,6 +2688,7 @@ input[type=checkbox]:checked::after {
                                     );
                                     if (bl) {
                                         item.tmpBlob = bl;
+                                        item.blob = bl;
                                         jsZip.file(item.name, bl);
                                         upSetImgBlob(idx, bl, "🔍 ");
                                         item.info.itemtag.style.borderColor = "#8b5cf6";
