@@ -23,14 +23,22 @@
         9. 모바일 다운로드 (비공식)
     */
 
-    const PROXY_SERV_URL = "https://jfkskw.duckdns.org:17875/proxy?url=%%%ENCODEURL%%%";  // 디시콘, 개드립콘 프록시 서버 설정
-    const JS_ZIP_URL = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"; // 압축 파일 관련 모듈
-    const FFMPEG_CORE_JS_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.min.js"; // gif 파일 변환 관련 모듈
-    const FFMPEG_CORE_WASM_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm"; // gif 파일 변환 관련 모듈
-    const GIF_EDIT_URL = "https://shoag7449.github.io/acacon/gifs.js"; // gif 파일 편집 관련 모듈
-    const ONNX_RUNTIME_URL = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.all.min.js"; // waifu2x ONNX 런타임
-    const WAIFU2X_WORKER_URL = "https://shoag7449.github.io/acacon/waifu2x/script_worker.js"; // waifu2x 워커 스크립트
-    const WAIFU2X_MODEL_BASE = "https://shoag7449.github.io/acacon/waifu2x"; // waifu2x 모델 기본 경로
+    const PROXY_SERV_URL = "https://jfkskw.duckdns.org:17875/proxy?url=%%%ENCODEURL%%%";
+    // 디시콘, 개드립콘 프록시 서버 설정
+    const JS_ZIP_URL = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
+    // 압축 파일 관련 모듈
+    const FFMPEG_CORE_JS_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.min.js";
+    // gif 파일 변환 관련 모듈
+    const FFMPEG_CORE_WASM_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm";
+    // gif 파일 변환 관련 모듈
+    const GIF_EDIT_URL = "https://shoag7449.github.io/acacon/gifs.js";
+    // gif 파일 편집 관련 모듈
+    const ONNX_RUNTIME_URL = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.all.min.js";
+    // waifu2x ONNX 런타임
+    const WAIFU2X_WORKER_URL = "https://shoag7449.github.io/acacon/waifu2x/script_worker.js";
+    // waifu2x 워커 스크립트
+    const WAIFU2X_MODEL_BASE = "https://shoag7449.github.io/acacon/waifu2x";
+    // waifu2x 모델 기본 경로
     const MODERN_CSS_TEXT = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
@@ -527,8 +535,10 @@ input[type=checkbox]:checked::after {
 }
 .gifAdjustSubmit:active { transform: translateY(0); }
 \`;`;
-    const ARKA_API_URL = "https://arca.live/api/emoticon/%%%EMOID%%%"; // 아카라이브 이모티콘 api
-    const F366C_STR = "f366c_"; // localStorage에서 prefix로 사용
+    const ARKA_API_URL = "https://arca.live/api/emoticon/%%%EMOID%%%";
+    // 아카라이브 이모티콘 api
+    const F366C_STR = "f366c_";
+    // localStorage에서 prefix로 사용
 
     // ffmpeg_core 파일에 추가적으로 작성할 코드 ( worker 에서 쓰일 예정 )
     const WORKER_ADDITION_CODE = `;;;
@@ -536,7 +546,9 @@ input[type=checkbox]:checked::after {
         const msg = e.data;
         if (!createFFmpegCore.__self )
             createFFmpegCore.__self = await createFFmpegCore({
-                mainScriptUrlOrBlob: "${btoa(JSON.stringify({ wasmURL: FFMPEG_CORE_WASM_URL }))}",
+                mainScriptUrlOrBlob: "${btoa(JSON.stringify({
+        wasmURL: FFMPEG_CORE_WASM_URL
+    }))}",
                 print: () => {},
                 printErr: () => {},
                 onExit: () => {},
@@ -564,10 +576,12 @@ input[type=checkbox]:checked::after {
     const getAttr = (a, b) => a.getAttribute(b);
     const setHTML = (object, html, _append) => object.innerHTML = (_append ? object.innerHTML : "") + html;
     const setStatus = (e) => {
-        if (!alert_tag) return;
+        if (!alert_tag)
+            return;
         const target = alert_tag.querySelector('.noticefrm-text') || alert_tag;
         setHTML(target, e);
-    };
+    }
+        ;
     const validString = (e) => (typeof e === 'string' && e.length > 0);
     const setObjectVarParam = (...args) => args.find(v => v != null && (typeof v !== 'string' || v.length > 0)) ?? null;
     const createTag = (tag, parent) => {
@@ -575,7 +589,8 @@ input[type=checkbox]:checked::after {
         if (parent)
             append(parent, e);
         return e;
-    };
+    }
+        ;
     const createTagHTML = (tag, html, parent) => {
         const e = document.createElement(tag);
         if (html)
@@ -583,14 +598,16 @@ input[type=checkbox]:checked::after {
         if (parent)
             append(parent, e);
         return e;
-    };
+    }
+        ;
     const createControl = (control, parent, last) => {
         const e = document.createElement("input");
         e.type = control;
         if (parent)
             (last ? insertBf : append)(parent, e);
         return e;
-    };
+    }
+        ;
     const createTagClass = (tag, _class, text, parent) => {
         const e = createTag(tag);
         if (_class)
@@ -600,21 +617,26 @@ input[type=checkbox]:checked::after {
         if (parent)
             append(parent, e);
         return e;
-    };
+    }
+        ;
     const customAlert = (e) => {
         const existing = document.querySelector('.toast-msg');
-        if (existing) existing.remove();
+        if (existing)
+            existing.remove();
         const toast = createTagClass("div", "toast-msg", null);
         toast.textContent = e;
         document.body.appendChild(toast);
         requestAnimationFrame(() => {
             requestAnimationFrame(() => toast.classList.add("show"));
-        });
+        }
+        );
         setTimeout(() => {
             toast.classList.remove("show");
             setTimeout(() => toast.remove(), 300);
-        }, 5000);
-    };
+        }
+            , 5000);
+    }
+        ;
     const setMinMax = (a, b, c, d) => a < b || a > c ? d : a;
     const revokURL = (e) => URL.revokeObjectURL(e);
     const createURL = (e) => URL.createObjectURL(e);
@@ -639,7 +661,8 @@ input[type=checkbox]:checked::after {
         } catch (e) {
             return {};
         }
-    };
+    }
+        ;
     const addHttpMissing = (url) => {
         try {
             if (!url.startsWith("http"))
@@ -648,7 +671,8 @@ input[type=checkbox]:checked::after {
         } catch (e) {
             return url;
         }
-    };
+    }
+        ;
     const parseMatch = (str, regex) => {
         if (typeof str !== "string")
             return null;
@@ -659,13 +683,16 @@ input[type=checkbox]:checked::after {
             return match[1];
 
         return null;
-    };
+    }
+        ;
     const humanFileSize = (bytes) => {
         const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        if (bytes === 0) return '0 B';
+        if (bytes === 0)
+            return '0 B';
         const i = Math.floor(Math.log(bytes) / Math.log(1024));
         return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + units[i];
-    };
+    }
+        ;
 
     const makeChkbox = (f, n) => {
         const checkboxLabel = createTagClass("label", "mainfrmlbl");
@@ -674,7 +701,8 @@ input[type=checkbox]:checked::after {
         append(f, checkboxLabel);
 
         return checkbox;
-    };
+    }
+        ;
 
     // 현재 사이트가 프록시를 써야하는 사이트인지 알아내는 함수
     const isCORSErrSite = () => {
@@ -685,7 +713,8 @@ input[type=checkbox]:checked::after {
             return 2;
 
         return 0;
-    };
+    }
+        ;
 
     // CSS 적용 (내장형)
     const style = createTag("style");
@@ -701,11 +730,11 @@ input[type=checkbox]:checked::after {
         createTagClass("span", "noticefrm-text", null, alert_tag);
 
         insertBf(document.body, alert_tag);
-    }
-    else {
+    } else {
         // 이전 실행에서 남은 "압축파일" 링크 제거
         const oldLink = alert_tag.querySelector('.download');
-        if (oldLink) oldLink.remove();
+        if (oldLink)
+            oldLink.remove();
 
         if (alert_tag.blobUrl && alert_tag.blobUrl.length > 0) {
             revokURL(alert_tag.blobUrl);
@@ -723,8 +752,16 @@ input[type=checkbox]:checked::after {
     const gifEditChk = makeChkbox(form, "GIF 편집");
     const pngConvChk = makeChkbox(form, "PNG 변환");
     const upscaleChk = makeChkbox(form, "🔍 업스케일링");
-    gifEditChk.addEventListener("change", () => { if (gifEditChk.checked) upscaleChk.checked = false; });
-    upscaleChk.addEventListener("change", () => { if (upscaleChk.checked) gifEditChk.checked = false; });
+    gifEditChk.addEventListener("change", () => {
+        if (gifEditChk.checked)
+            upscaleChk.checked = false;
+    }
+    );
+    upscaleChk.addEventListener("change", () => {
+        if (upscaleChk.checked)
+            gifEditChk.checked = false;
+    }
+    );
 
     // gif 화질 설정칸
     const lossySelectLabel = createTagClass("label", "selLbl", null, form);
@@ -741,14 +778,16 @@ input[type=checkbox]:checked::after {
         const op = createTagClass("option", "", e);
         op.value = e;
         append(fpsSelectCombo, op);
-    });
+    }
+    );
 
     [1, 100, 50, 30, 10, 5].forEach((e, i) => {
         const op = createTagClass("option", "", e);
         op.value = e;
         op.text = ["기본", "최상", "상", "중", "하", "최하"][i];
         append(lossySelectCombo, op);
-    });
+    }
+    );
 
     // localStorage에서 저장된 설정값을 가져오는 코드
     gifConvChk.checked = (localStorage.getItem(F366C_STR + "chk1") ?? "true") === "true";
@@ -764,7 +803,8 @@ input[type=checkbox]:checked::after {
 
     lossySelectCombo.addEventListener("change", e => {
         fpsSelectLabel.style.display = parseInt(e.target.value) === 1 ? "none" : "flex";
-    });
+    }
+    );
 
     lossySelectCombo.dispatchEvent(new Event('change'));
 
@@ -796,8 +836,10 @@ input[type=checkbox]:checked::after {
                     noticeHttpsCert.remove();
                     clearInterval(interval);
                 }
-            }, 5000);
-        })();
+            }
+                , 5000);
+        }
+        )();
     }
 
     const button1 = createTagClass("button", "mainfrmBtn1", "전체 이미지 다운로드", form);
@@ -811,7 +853,8 @@ input[type=checkbox]:checked::after {
     // alert_tag(noticefrm) 오른쪽에 설정 버튼 추가
     // 기존 설정 버튼이 있으면 제거 후 새로 생성
     const oldSettingsBtn = alert_tag.querySelector('.noticefrm-settings-btn');
-    if (oldSettingsBtn) oldSettingsBtn.remove();
+    if (oldSettingsBtn)
+        oldSettingsBtn.remove();
 
     const settings_btn = createTagClass("button", "noticefrm-settings-btn", "⚙️", alert_tag);
     setAttr(settings_btn, "title", "설정 열기");
@@ -822,7 +865,8 @@ input[type=checkbox]:checked::after {
             customAlert(`다음부터 GIF 설정창이 나옵니다.`);
             localStorage.setItem(F366C_STR, 0);
         }
-    });
+    }
+    );
 
     // localStorage에서 현재 설정값을 저장하는 코드
     const saveSettings = (e) => {
@@ -833,16 +877,13 @@ input[type=checkbox]:checked::after {
         localStorage.setItem(F366C_STR + "lossyval", lossySelectCombo.value);
         localStorage.setItem(F366C_STR + "fpsval", fpsSelectCombo.value);
         localStorage.setItem(F366C_STR, e);
-    };
+    }
+        ;
 
     // 변환 버튼을 누를 경우 
     const performTaskLogic = (isSelectMode) => {
         if (localStorage.getItem(F366C_STR) != 1)
-            customAlert('좌측 상단의 흰색 상태 바의 ⚙️ 버튼을 클릭하면 옵션 창을 열 수 있습니다.\n\n' +
-                '1. 아카콘 다운로드 가능.\n' +
-                '2. 디시콘 다운로드 가능.\n' +
-                '3. 개드립콘 다운로드 가능.\n' +
-                '4. 인벤스티커 다운로드 가능.');
+            customAlert('좌측 상단의 흰색 상태 바의 ⚙️ 버튼을 클릭하면 옵션 창을 열 수 있습니다.\n\n' + '1. 아카콘 다운로드 가능.\n' + '2. 디시콘 다운로드 가능.\n' + '3. 개드립콘 다운로드 가능.\n' + '4. 인벤스티커 다운로드 가능.');
 
         saveSettings(!isSelectMode && 1);
         (async () => {
@@ -854,7 +895,9 @@ input[type=checkbox]:checked::after {
                         const res = await fetch(url);
                         let text = await res.text();
                         text = patchFunc(text);
-                        src = createURL(new Blob([text], { type: 'application/javascript' }));
+                        src = createURL(new Blob([text], {
+                            type: 'application/javascript'
+                        }));
                     }
                     return new Promise((resolve, reject) => {
                         const script = createTag("script");
@@ -863,11 +906,13 @@ input[type=checkbox]:checked::after {
                         script.onload = () => resolve();
                         script.onerror = () => reject();
                         document.head.appendChild(script);
-                    });
+                    }
+                    );
                 } catch (e) {
                     return Promise.reject(e);
                 }
-            };
+            }
+                ;
 
             // JSZip 변수가 없을 경우 ( JSZip 이 로드가 안된경우 )
             if (checkFunc("JSZip")) {
@@ -894,7 +939,6 @@ input[type=checkbox]:checked::after {
                 }
             }
 
-
             const convertPng = (blob) => {
                 // 이미지를 png로 변환하는 함수
                 try {
@@ -915,35 +959,33 @@ input[type=checkbox]:checked::after {
                             canvas.toBlob((pngBlob) => {
                                 resolve(pngBlob);
                                 revokURL(objUrl);
-                            }, "image/png");
-                        };
+                            }
+                                , "image/png");
+                        }
+                            ;
                         img.onerror = () => {
                             revokURL(objUrl);
                             reject(new Error("Image load failed"));
-                        };
-                    });
+                        }
+                            ;
+                    }
+                    );
                 } catch (error) {
                     console.error(error);
                     return Promise.resolve(false);
                 }
-            };
+            }
+                ;
 
             const extractExtension = (url) => {
                 // url 에서 확장자를 추출하는 함수
                 return parseMatch(url.split("?")[0], /\.(\w{2,4}$)/);
-            };
+            }
+                ;
 
             const chkHeader = (buf) => {
                 // 이미지 또는 영상 파일에서 헤더를 읽어 포멧이 무엇인지 판별하는 함수
-                const fileSignatures = [
-                    ["png", [0x89, 0x50, 0x4E, 0x47]],
-                    ["webp", [0x52, 0x49, 0x46, 0x46]],
-                    ["jpg", [0xFF, 0xD8, 0xFF]],
-                    ["tiff", [0x49, 0x49, 0x2A]],
-                    ["tiff", [0x4D, 0x4D, 0x2A]],
-                    ["gif", [0x47, 0x49, 0x46]],
-                    ["bmp", [0x42, 0x4D]]
-                ];
+                const fileSignatures = [["png", [0x89, 0x50, 0x4E, 0x47]], ["webp", [0x52, 0x49, 0x46, 0x46]], ["jpg", [0xFF, 0xD8, 0xFF]], ["tiff", [0x49, 0x49, 0x2A]], ["tiff", [0x4D, 0x4D, 0x2A]], ["gif", [0x47, 0x49, 0x46]], ["bmp", [0x42, 0x4D]]];
 
                 // mp4 식별자가 들어간 경우
                 if (String.fromCharCode.apply(null, buf).includes("ftyp"))
@@ -974,7 +1016,9 @@ input[type=checkbox]:checked::after {
             let img_count = 0;
 
             (async () => {
-                const o = { url: "" };
+                const o = {
+                    url: ""
+                };
 
                 const _process = (o, proxy) => {
                     if (!validString(o.url))
@@ -987,7 +1031,8 @@ input[type=checkbox]:checked::after {
                         ++mp4cnt;
                     if (proxy)
                         o.url = PROXY_SERV_URL.replace("%%%ENCODEURL%%%", encodeURIComponent(o.url));
-                };
+                }
+                    ;
 
                 const find_tag = (name) => {
                     try {
@@ -1006,9 +1051,15 @@ input[type=checkbox]:checked::after {
                     } catch (e) {
                         return [];
                     }
-                };
+                }
+                    ;
 
-                const add_url_prop = (i, j, k, l) => urls.push({ index: i, url: j, extension: k, element: l });
+                const add_url_prop = (i, j, k, l) => urls.push({
+                    index: i,
+                    url: j,
+                    extension: k,
+                    element: l
+                });
 
                 // 아카라이브콘 검색 ( CORS 에러 발생 X )
                 find_tag("emoticon").forEach((e, i) => {
@@ -1017,7 +1068,8 @@ input[type=checkbox]:checked::after {
                         _process(o, false);
                         add_url_prop(i, [o.url], null, e);
                     }
-                });
+                }
+                );
 
                 /*
                     gif, png 원본 추출
@@ -1027,9 +1079,8 @@ input[type=checkbox]:checked::after {
                     디시콘샵에서는 gif 원본이 출력되기 때문에 별도의 gif 원본 api를 이용 안 해도 된다.
                 */
 
-                if ((gifConvChk.checked && pngConvChk.checked) &&
-                    lossySelectCombo.value == 100 /* lossySelectCombo.value 는 문자열이라 == 연산자를 이용해 정수타입과 비교 */ &&
-                    urls.length > 0 && domain === "arca.live") {
+                if ((gifConvChk.checked && pngConvChk.checked) && lossySelectCombo.value == 100 /* lossySelectCombo.value 는 문자열이라 == 연산자를 이용해 정수타입과 비교 */
+                    && urls.length > 0 && domain === "arca.live") {
                     const match = parseMatch(currentURL, /e\/(\d+)/);
 
                     if (match) {
@@ -1046,8 +1097,10 @@ input[type=checkbox]:checked::after {
                                     json.forEach(e => {
                                         const found = urls.find(el => el.element && el.element.getAttribute("data-id") == e.id);
                                         if (found)
-                                            found.url.unshift(addHttpMissing(e.imageUrl)); // url 배열 맨 앞에 추가한다. (우선순위 높음)
-                                    });
+                                            found.url.unshift(addHttpMissing(e.imageUrl));
+                                        // url 배열 맨 앞에 추가한다. (우선순위 높음)
+                                    }
+                                    );
                             }
                         }
                     }
@@ -1062,7 +1115,8 @@ input[type=checkbox]:checked::after {
                         _process(o, true);
                         add_url_prop(i, [o.url], null, e);
                     }
-                });
+                }
+                );
 
                 if ((img_count = urls.length) > 0)
                     return;
@@ -1073,7 +1127,8 @@ input[type=checkbox]:checked::after {
                         _process(o, true);
                         add_url_prop(i, [o.url], null, e);
                     }
-                });
+                }
+                );
 
                 if ((img_count = urls.length) > 0)
                     return;
@@ -1084,7 +1139,8 @@ input[type=checkbox]:checked::after {
                         _process(o, true);
                         add_url_prop(i, [o.url], null, e);
                     }
-                });
+                }
+                );
 
                 if ((img_count = urls.length) > 0)
                     return;
@@ -1095,7 +1151,8 @@ input[type=checkbox]:checked::after {
                         _process(o, true);
                         add_url_prop(i, [o.url], null, e);
                     }
-                });
+                }
+                );
 
                 if ((img_count = urls.length) > 0)
                     return;
@@ -1106,14 +1163,17 @@ input[type=checkbox]:checked::after {
                         _process(o, false);
                         add_url_prop(i, [o.url], null, e);
                     }
-                });
+                }
+                );
 
                 if ((img_count = urls.length) > 0)
                     return;
 
-            })().then(async () => {
+            }
+            )().then(async () => {
                 if (img_count <= 0) {
                     setStatus("이미지를 찾을 수 없습니다.");
+                    customAlert("이 페이지에서 다운로드 가능한 이미지를 찾을 수 없습니다.");
                     localStorage.setItem(F366C_STR, 0);
                     return;
                 }
@@ -1123,7 +1183,8 @@ input[type=checkbox]:checked::after {
                     if (emoObj.element) {
                         emoObj.element.style.cssText = emoObj.element.style.cssText.replace(/;?\s*filter:\s*sepia\(100%\)\s*hue-rotate\(90deg\);?/ig, '');
                     }
-                });
+                }
+                );
 
                 /*
                     *************************************************************************
@@ -1145,7 +1206,9 @@ input[type=checkbox]:checked::after {
                     // mp4 -> gif 는 변환이 느리므로 멀티스레드를 적극 활용한다.
                     const response = await fetch(FFMPEG_CORE_JS_URL);
                     const jsCode = (await response.text()) + WORKER_ADDITION_CODE;
-                    const workerBlobUrl = createURL(new Blob([jsCode], { type: 'application/javascript' }));
+                    const workerBlobUrl = createURL(new Blob([jsCode], {
+                        type: 'application/javascript'
+                    }));
 
                     for (let i = 0, j = Math.min(navigator.hardwareConcurrency, mp4cnt); i < j; ++i) {
                         // 스레드를 클라이언트 CPU 개수만큼 만든다 ( mp4가 별로 없으면 mp4 개수에 맞춤 )
@@ -1157,22 +1220,25 @@ input[type=checkbox]:checked::after {
                             queue: []
                         });
 
-                        ((capture) => { // onmessage 안에서 worker를 참조하기 위해 중괄호로 감싼다.
+                        ((capture) => {
+                            // onmessage 안에서 worker를 참조하기 위해 중괄호로 감싼다.
                             obj.onmessage = (e) => {
                                 const obj = capture.queue[0];
                                 obj.size -= e.data.size;
-                                obj.resolve(e.data.blob); // 끝날 때까지 대기하고 있는 convertGif 함수를 끝낸다.
+                                obj.resolve(e.data.blob);
+                                // 끝날 때까지 대기하고 있는 convertGif 함수를 끝낸다.
                                 capture.queue.shift();
 
                                 if (capture.queue.length > 0) {
                                     // 대기열에 데이터가 있으면 다시 worker에게 메세지를 보낸다.
                                     const obj = capture.queue[0];
                                     sendQueueMsg(capture.obj, obj.blob, obj.filter);
-                                }
-                                else
+                                } else
                                     capture.queue.size = 0;
-                            };
-                        })(ffmpegs[i]);
+                            }
+                                ;
+                        }
+                        )(ffmpegs[i]);
                     }
                 }
 
@@ -1180,24 +1246,33 @@ input[type=checkbox]:checked::after {
                 const gifFilter = (() => {
                     const fps = fpsSelectCombo.value;
                     const lossy = lossySelectCombo.value;
-                    if (lossy == 1) return null;
+                    if (lossy == 1)
+                        return null;
                     const lossyValue = Math.floor(lossy / 100 * 256);
                     const lossyOption = lossy >= 100 ? `palettegen` : `palettegen=max_colors=${lossyValue}`;
                     return `fps=${fps},scale=-1:-1:flags=lanczos,split [a][b];[a] ${lossyOption} [p];[b][p] paletteuse`;
-                })();
+                }
+                )();
 
                 const convertGif = (blob) => {
                     return new Promise(resolve => {
                         ffmpegs.sort((a, b) => a.size - b.size);
 
-                        const obj = ffmpegs[0]; // 상대적으로 작업량이 가벼운 worker를 분석해서 대기열에 추가
+                        const obj = ffmpegs[0];
+                        // 상대적으로 작업량이 가벼운 worker를 분석해서 대기열에 추가
                         if (obj.queue.length <= 0)
                             sendQueueMsg(obj.obj, blob, gifFilter);
 
                         obj.size += blob.size;
-                        obj.queue.push({ blob: blob, filter: gifFilter, resolve: resolve });
-                    });
-                };
+                        obj.queue.push({
+                            blob: blob,
+                            filter: gifFilter,
+                            resolve: resolve
+                        });
+                    }
+                    );
+                }
+                    ;
 
                 /*
                     *************************************************************************
@@ -1245,7 +1320,8 @@ input[type=checkbox]:checked::after {
                             quality: null
                         },
                     };
-                };
+                }
+                    ;
 
                 const URLDownloadImage = async (emoObj) => {
                     const setSt = (a, b, c) => setStatus(`이미지 ${a}/${b} 개 ` + `다운로드 완료. ${c} 개 실패.`);
@@ -1267,7 +1343,9 @@ input[type=checkbox]:checked::after {
                                     ++j;
                             }
                             return b;
-                        })(emoObj.url, {}); // {} 의 의미 : for 문 안에 b.ok 할때 오류방지
+                        }
+                        )(emoObj.url, {});
+                        // {} 의 의미 : for 문 안에 b.ok 할때 오류방지
 
                         // 총 3번 시도 했는데도 불구하고 못 얻었으면
                         if (!response.ok)
@@ -1281,7 +1359,8 @@ input[type=checkbox]:checked::after {
                         // 얻은 이미지의 첫 10자리를 unsigned char 형으로 변환해서 무슨 코덱인지 판별
                         const hdr = chkHeader(new Uint8Array(await blob.slice(0, 10).arrayBuffer()));
 
-                        if (hdr) // 코덱 판별에 성공하면 url 에 붙어있는 확장자를 무시하고 최우선으로 판단 ( 겉은 png인데 속은 jpg 인 경우가 있기 때문 )
+                        if (hdr)
+                            // 코덱 판별에 성공하면 url 에 붙어있는 확장자를 무시하고 최우선으로 판단 ( 겉은 png인데 속은 jpg 인 경우가 있기 때문 )
                             emoObj.extension = hdr;
 
                         let al = true;
@@ -1304,7 +1383,11 @@ input[type=checkbox]:checked::after {
                                         tmpBlob: gb,
                                         name: filename,
                                         extension: "gif",
-                                        info: { itemtag: null, nametag: null, imgtag: null }
+                                        info: {
+                                            itemtag: null,
+                                            nametag: null,
+                                            imgtag: null
+                                        }
                                     });
 
                                 if (gifEditChk.checked)
@@ -1322,11 +1405,9 @@ input[type=checkbox]:checked::after {
                                     });
 
                                 al = false;
-                            }
-                            else
+                            } else
                                 throw new Error("convert Gif Error");
-                        }
-                        // png 변환이 체크됐고 확장자가 jpeg,jpg,webp,bmp,tiff 에 포함됐다면
+                        }// png 변환이 체크됐고 확장자가 jpeg,jpg,webp,bmp,tiff 에 포함됐다면
                         else if (pngConvChk.checked && "jpeg|jpg|webp|bmp|tiff".includes(emoObj.extension)) {
                             // png 변환
                             const gb = await convertPng(blob);
@@ -1343,12 +1424,15 @@ input[type=checkbox]:checked::after {
                                         tmpBlob: gb,
                                         name: pngFilename,
                                         extension: "png",
-                                        info: { itemtag: null, nametag: null, imgtag: null }
+                                        info: {
+                                            itemtag: null,
+                                            nametag: null,
+                                            imgtag: null
+                                        }
                                     });
 
                                 al = false;
-                            }
-                            else
+                            } else
                                 throw new Error("convert Png Error");
                         }
 
@@ -1378,7 +1462,11 @@ input[type=checkbox]:checked::after {
                                     tmpBlob: blob,
                                     name: filename,
                                     extension: emoObj.extension,
-                                    info: { itemtag: null, nametag: null, imgtag: null }
+                                    info: {
+                                        itemtag: null,
+                                        nametag: null,
+                                        imgtag: null
+                                    }
                                 });
                         }
 
@@ -1415,7 +1503,9 @@ input[type=checkbox]:checked::after {
 
                         try {
                             // 이미지를 추가한 zip 파일을 완성하고 blob 타입으로 변환
-                            const zipContent = await jsZip.generateAsync({ type: "blob" });
+                            const zipContent = await jsZip.generateAsync({
+                                type: "blob"
+                            });
 
                             // 하이퍼링크를 생성하고 zip blob 주소를 하이퍼링크 url로 대체
                             let title = document.getElementsByClassName("font_blue")[0];
@@ -1483,8 +1573,10 @@ input[type=checkbox]:checked::after {
 
                                     // X: 버튼 중앙 정렬
                                     let posX = btnRect.left + btnRect.width / 2 - popupWidth / 2;
-                                    if (posX + popupWidth > viewW) posX = viewW - popupWidth - 8;
-                                    if (posX < 0) posX = 8;
+                                    if (posX + popupWidth > viewW)
+                                        posX = viewW - popupWidth - 8;
+                                    if (posX < 0)
+                                        posX = 8;
 
                                     // Y: 버튼 바로 아래
                                     let posY = btnRect.bottom + 8;
@@ -1502,12 +1594,14 @@ input[type=checkbox]:checked::after {
                                     popup.style.left = posX + 'px';
                                     popup.style.top = posY + 'px';
                                     popup.classList.add('visible');
-                                }, 100, popup, form, e);
+                                }
+                                    , 100, popup, form, e);
 
                                 close_btn.addEventListener('click', e => {
                                     e.stopPropagation();
                                     popup.remove();
-                                });
+                                }
+                                );
 
                                 const outsideClickHandler = e => {
                                     // 바깥 클릭 시에만 닫기
@@ -1515,11 +1609,13 @@ input[type=checkbox]:checked::after {
                                         popup.remove();
                                         document.removeEventListener('click', outsideClickHandler);
                                     }
-                                };
+                                }
+                                    ;
                                 document.addEventListener('click', outsideClickHandler);
 
                                 return popup;
-                            };
+                            }
+                                ;
 
                             const form = createTagClass("div", "gifEditfrm");
 
@@ -1529,13 +1625,13 @@ input[type=checkbox]:checked::after {
                             close_btn.addEventListener('click', e => {
                                 e.stopPropagation();
                                 form.remove();
-                            });
+                            }
+                            );
 
                             form.addEventListener('scroll', () => {
                                 close_btn.style.top = (form.scrollTop + 16) + 'px';
-                            });
-
-
+                            }
+                            );
 
                             gifs.sort((a, b) => a.name.localeCompare(b.name));
                             gifs.push({
@@ -1563,7 +1659,8 @@ input[type=checkbox]:checked::after {
                                 gif.info.imgtag.src = blobURL;
 
                                 setHTML(gif.info.nametag, gif.name + "<br>" + name_prefix + humanFileSize(blob.size));
-                            };
+                            }
+                                ;
 
                             gifs.forEach((_gif, itemIdx) => {
                                 const item = createTagClass("div", "gifEditfrmItem");
@@ -1586,7 +1683,8 @@ input[type=checkbox]:checked::after {
 
                                     img.addEventListener("click", (e) => {
                                         e.target.classList.toggle("zoom");
-                                    });
+                                    }
+                                    );
                                 }
 
                                 const buttonGroup = createTagClass("div", "gifEditfrmBtnGrp", null, item);
@@ -1603,14 +1701,14 @@ input[type=checkbox]:checked::after {
                                 const btn4 = createTagClass("button", "gifEditfrmBtn", null, buttonGroup);
                                 setHTML(btn4, "원본");
 
-
                                 _gif.info.imgtag = img;
                                 _gif.info.nametag = name;
                                 _gif.info.itemtag = item;
 
                                 buttonGroup.addEventListener('click', async (e) => {
                                     const btn = e.target.closest('.gifEditfrmBtn');
-                                    if (!btn) return;
+                                    if (!btn)
+                                        return;
                                     const idx = Array.prototype.indexOf.call(buttonGroup.children, btn);
                                     switch (idx) {
                                         case 0:
@@ -1626,7 +1724,8 @@ input[type=checkbox]:checked::after {
                                                             return;
 
                                                         buffers.push(_gif.tmpBlob.arrayBuffer());
-                                                    });
+                                                    }
+                                                    );
                                                 } else {
                                                     buffers.push(gifs[itemIdx].tmpBlob.arrayBuffer());
                                                 }
@@ -1656,16 +1755,24 @@ input[type=checkbox]:checked::after {
                                                                         const filename = setFilename(index, "png");
                                                                         folder.file(filename, blob);
                                                                         resolve();
-                                                                    }, "image/png");
-                                                                }));
-                                                            });
-                                                        })
+                                                                    }
+                                                                        , "image/png");
+                                                                }
+                                                                ));
+                                                            }
+                                                            );
+                                                        }
+                                                        )
 
                                                         Promise.all(tasks).then(async () => {
-                                                            const zipContent = await extZip.generateAsync({ type: "blob" });
+                                                            const zipContent = await extZip.generateAsync({
+                                                                type: "blob"
+                                                            });
                                                             createDownloadTag(createURL(zipContent), "extract.zip");
-                                                        });
-                                                    },
+                                                        }
+                                                        );
+                                                    }
+                                                    ,
                                                     onerror: e => { }
                                                 });
                                                 break;
@@ -1681,9 +1788,12 @@ input[type=checkbox]:checked::after {
                                                             return;
 
                                                         extZip.file(_gif.name, _gif.tmpBlob);
-                                                    });
+                                                    }
+                                                    );
 
-                                                    const zipContent = await extZip.generateAsync({ type: "blob" });
+                                                    const zipContent = await extZip.generateAsync({
+                                                        type: "blob"
+                                                    });
                                                     createDownloadTag(createURL(zipContent), "download.zip");
 
                                                 } else {
@@ -1708,9 +1818,13 @@ input[type=checkbox]:checked::after {
                                                 const popup_row2 = createTagClass("div", "popup-row", null, popup);
                                                 const checkbox2 = createControl("checkbox", createTagHTML("label", "프레임 스킵", popup_row2), true);
                                                 const textbox2 = createControl("text", createTagHTML("label", "건너뛸 수: ", popup_row2));
-                                                textbox2.addEventListener('input', function () { this.value = this.value.replace(/[^0-9]/g, ''); });
+                                                textbox2.addEventListener('input', function () {
+                                                    this.value = this.value.replace(/[^0-9]/g, '');
+                                                });
                                                 const textbox2_1 = createControl("text", createTagHTML("label", "제거할 수: ", popup_row2));
-                                                textbox2_1.addEventListener('input', function () { this.value = this.value.replace(/[^0-9]/g, ''); });
+                                                textbox2_1.addEventListener('input', function () {
+                                                    this.value = this.value.replace(/[^0-9]/g, '');
+                                                });
 
                                                 // 밝기, 샤픈 영역
                                                 const popup_row3 = createTagClass("div", "popup-row", null, popup);
@@ -1742,11 +1856,15 @@ input[type=checkbox]:checked::after {
 
                                                 const spriteColsBox = createControl("text", createTagHTML("label", "가로(열): ", popup_row5));
                                                 spriteColsBox.placeholder = "자동";
-                                                spriteColsBox.addEventListener('input', function () { this.value = this.value.replace(/[^0-9]/g, ''); });
+                                                spriteColsBox.addEventListener('input', function () {
+                                                    this.value = this.value.replace(/[^0-9]/g, '');
+                                                });
 
                                                 const spriteRowsBox = createControl("text", createTagHTML("label", "세로(행): ", popup_row5));
                                                 spriteRowsBox.placeholder = "자동";
-                                                spriteRowsBox.addEventListener('input', function () { this.value = this.value.replace(/[^0-9]/g, ''); });
+                                                spriteRowsBox.addEventListener('input', function () {
+                                                    this.value = this.value.replace(/[^0-9]/g, '');
+                                                });
 
                                                 const spriteBtn = createTagClass("button", "gifAdjustSubmit", null, popup_row5);
                                                 setHTML(spriteBtn, "스프라이트 만들기");
@@ -1763,7 +1881,8 @@ input[type=checkbox]:checked::after {
 
                                                     const works = [];
                                                     if (endIndex)
-                                                        for (let i = 0; i < gifs.length; ++i) works.push(i);
+                                                        for (let i = 0; i < gifs.length; ++i)
+                                                            works.push(i);
                                                     else
                                                         works.push(itemIdx);
 
@@ -1771,7 +1890,8 @@ input[type=checkbox]:checked::after {
                                                     const tasks = [];
 
                                                     works.forEach(e => {
-                                                        if (gifs[e].endboundary) return;
+                                                        if (gifs[e].endboundary)
+                                                            return;
 
                                                         tasks.push(new Promise(async resolve => {
                                                             const arrayBuffer = await gifs[e].tmpBlob.arrayBuffer();
@@ -1782,14 +1902,19 @@ input[type=checkbox]:checked::after {
                                                                 files: [],
                                                                 buffers: [arrayBuffer],
                                                                 oncomplete: (F) => {
-                                                                    if (!F || !F[0] || !F[0].frames) { resolve(); return; }
+                                                                    if (!F || !F[0] || !F[0].frames) {
+                                                                        resolve();
+                                                                        return;
+                                                                    }
                                                                     const frames = F[0].frames;
 
                                                                     let cols = inputCols;
                                                                     let rows = inputRows;
 
-                                                                    if (isNaN(cols) || cols <= 0) cols = frames.length;
-                                                                    if (isNaN(rows) || rows <= 0) rows = Math.ceil(frames.length / cols);
+                                                                    if (isNaN(cols) || cols <= 0)
+                                                                        cols = frames.length;
+                                                                    if (isNaN(rows) || rows <= 0)
+                                                                        rows = Math.ceil(frames.length / cols);
 
                                                                     if (isNaN(inputCols) && !isNaN(inputRows) && inputRows > 0) {
                                                                         cols = Math.ceil(frames.length / rows);
@@ -1800,7 +1925,8 @@ input[type=checkbox]:checked::after {
                                                                     frames.forEach(f => {
                                                                         frameWidth = Math.max(frameWidth, f.canvas.width);
                                                                         frameHeight = Math.max(frameHeight, f.canvas.height);
-                                                                    });
+                                                                    }
+                                                                    );
 
                                                                     const spriteCanvas = document.createElement("canvas");
                                                                     spriteCanvas.width = cols * frameWidth;
@@ -1811,7 +1937,8 @@ input[type=checkbox]:checked::after {
                                                                         const col = idx % cols;
                                                                         const row = Math.floor(idx / cols);
                                                                         ctx.drawImage(f.canvas, col * frameWidth, row * frameHeight);
-                                                                    });
+                                                                    }
+                                                                    );
 
                                                                     spriteCanvas.toBlob(blob => {
                                                                         const filename = gifs[e].name.replace(/\.gif$/i, "_sprite.png");
@@ -1821,19 +1948,29 @@ input[type=checkbox]:checked::after {
                                                                             createDownloadTag(createURL(blob), filename);
                                                                         }
                                                                         resolve();
-                                                                    }, "image/png");
-                                                                },
-                                                                onerror: err => { console.error(err); resolve(); }
+                                                                    }
+                                                                        , "image/png");
+                                                                }
+                                                                ,
+                                                                onerror: err => {
+                                                                    console.error(err);
+                                                                    resolve();
+                                                                }
                                                             });
-                                                        }));
-                                                    });
+                                                        }
+                                                        ));
+                                                    }
+                                                    );
 
                                                     await Promise.all(tasks);
                                                     if (extZip) {
-                                                        const zipContent = await extZip.generateAsync({ type: "blob" });
+                                                        const zipContent = await extZip.generateAsync({
+                                                            type: "blob"
+                                                        });
                                                         createDownloadTag(createURL(zipContent), "sprites.zip");
                                                     }
-                                                });
+                                                }
+                                                );
 
                                                 const btn = createTagClass("button", "gifAdjustSubmit", null, popup);
                                                 setHTML(btn, "적용");
@@ -1855,23 +1992,28 @@ input[type=checkbox]:checked::after {
 
                                                 range1.oninput = range1.onchange = function () {
                                                     setHTML(vlbl1, `${this.value}%`);
-                                                };
+                                                }
+                                                    ;
 
                                                 range3.oninput = range3.onchange = function () {
                                                     setHTML(vlbl3, `${this.value}%`);
-                                                };
+                                                }
+                                                    ;
 
                                                 range4.oninput = range4.onchange = function () {
                                                     setHTML(vlbl4, `${this.value}%`);
-                                                };
+                                                }
+                                                    ;
 
                                                 range5.oninput = range5.onchange = function () {
                                                     setHTML(vlbl5, `${this.value}%`);
-                                                };
+                                                }
+                                                    ;
 
                                                 range6.oninput = range6.onchange = function () {
                                                     setHTML(vlbl6, this.value);
-                                                };
+                                                }
+                                                    ;
 
                                                 const options = _gif.info.options;
 
@@ -1906,7 +2048,8 @@ input[type=checkbox]:checked::after {
 
                                                     // index를 배열에 저장해 단일, 다중 변환에 대응하도록 한다.
                                                     if (endIndex)
-                                                        for (let i = 0; i < gifs.length; ++i) works.push(i);
+                                                        for (let i = 0; i < gifs.length; ++i)
+                                                            works.push(i);
                                                     else
                                                         works.push(itemIdx);
 
@@ -1954,13 +2097,16 @@ input[type=checkbox]:checked::after {
                                                             optimize: options.optimize,
                                                             oncomplete: (blob) => {
                                                                 setImgSrcBlob(e, blob, "★ ");
-                                                            },
+                                                            }
+                                                            ,
                                                             onerror: e => { }
                                                         });
-                                                    });
+                                                    }
+                                                    );
 
                                                     popup.remove();
-                                                });
+                                                }
+                                                );
 
                                                 break;
                                             }
@@ -1970,7 +2116,8 @@ input[type=checkbox]:checked::after {
                                                 const works = [];
 
                                                 if (endIndex)
-                                                    for (let i = 0; i < gifs.length - 1; ++i) works.push(i);
+                                                    for (let i = 0; i < gifs.length - 1; ++i)
+                                                        works.push(i);
                                                 else
                                                     works.push(itemIdx);
 
@@ -1978,15 +2125,17 @@ input[type=checkbox]:checked::after {
                                                     const blob = await gifs[e].blob;
                                                     setImgSrcBlob(e, blob);
                                                     gifs[e].info.options = options_info();
-                                                });
+                                                }
+                                                );
                                                 break;
                                             }
                                     }
-                                });
-
+                                }
+                                );
 
                                 append(form, item);
-                            });
+                            }
+                            );
 
                             append(document.body, form);
                         }
@@ -2003,21 +2152,29 @@ input[type=checkbox]:checked::after {
                             const close_btn2 = createTagClass("button", "close-btn", null, upForm);
                             setHTML(close_btn2, "&times;");
                             close_btn2.addEventListener('click', () => upForm.remove());
-                            upForm.addEventListener('scroll', () => { close_btn2.style.top = (upForm.scrollTop + 16) + 'px'; });
+                            upForm.addEventListener('scroll', () => {
+                                close_btn2.style.top = (upForm.scrollTop + 16) + 'px';
+                            }
+                            );
 
                             const upSetImgBlob = (index, blob, prefix) => {
                                 const it = upscaleItems[index];
                                 const oldUrl = it.info.imgtag.src;
-                                if (oldUrl && oldUrl.startsWith('blob:')) { it.info.imgtag.src = ""; setTimeout(revokURL, 300, oldUrl); }
+                                if (oldUrl && oldUrl.startsWith('blob:')) {
+                                    it.info.imgtag.src = "";
+                                    setTimeout(revokURL, 300, oldUrl);
+                                }
                                 it.tmpBlob = blob;
                                 it.info.imgtag.src = createURL(blob);
-                                setHTML(it.info.nametag, it.name + "<br>" + (prefix||"") + humanFileSize(blob.size));
-                            };
+                                setHTML(it.info.nametag, it.name + "<br>" + (prefix || "") + humanFileSize(blob.size));
+                            }
+                                ;
 
                             upscaleItems.forEach((item, idx) => {
                                 const cell = createTagClass("div", "gifEditfrmItem");
                                 const img = createTagClass("img", "gifEditfrmItemImg", null, cell);
-                                img.className += " transp_bg"; img.src = item.url;
+                                img.className += " transp_bg";
+                                img.src = item.url;
                                 img.addEventListener("click", () => img.classList.toggle("zoom"));
                                 item.info.imgtag = img;
                                 const nameTag = createTagClass("div", "gifEditfrmItemInfo", null, cell);
@@ -2026,13 +2183,22 @@ input[type=checkbox]:checked::after {
                                 const btnGrp = createTagClass("div", "gifEditfrmBtnGrp", null, cell);
                                 const dlBtn = createTagClass("button", "gifEditfrmBtn", null, btnGrp);
                                 setHTML(dlBtn, "다운");
-                                dlBtn.addEventListener("click", () => { createDownloadTag(createURL(item.tmpBlob), item.name).click(); });
+                                dlBtn.addEventListener("click", () => {
+                                    createDownloadTag(createURL(item.tmpBlob), item.name).click();
+                                }
+                                );
                                 const origBtn = createTagClass("button", "gifEditfrmBtn", null, btnGrp);
                                 setHTML(origBtn, "원본");
-                                origBtn.addEventListener("click", () => { item.tmpBlob = item.blob; upSetImgBlob(idx, item.blob, ""); cell.style.borderColor = "#e2e8f0"; });
+                                origBtn.addEventListener("click", () => {
+                                    item.tmpBlob = item.blob;
+                                    upSetImgBlob(idx, item.blob, "");
+                                    cell.style.borderColor = "#e2e8f0";
+                                }
+                                );
                                 item.info.itemtag = cell;
                                 append(upForm, cell);
-                            });
+                            }
+                            );
 
                             // 일괄 다운로드
                             const batchCell = createTagClass("div", "gifEditfrmItem");
@@ -2042,92 +2208,168 @@ input[type=checkbox]:checked::after {
                             setHTML(batchName, "일괄<br>다운로드");
                             const batchBtnGrp = createTagClass("div", "gifEditfrmBtnGrp", null, batchCell);
                             const batchDlBtn = createTagClass("button", "gifEditfrmBtn", null, batchBtnGrp);
-                            setHTML(batchDlBtn, "ZIP 다운"); batchDlBtn.style.gridColumn = "1 / -1";
+                            setHTML(batchDlBtn, "ZIP 다운");
+                            batchDlBtn.style.gridColumn = "1 / -1";
                             batchDlBtn.addEventListener("click", async () => {
-                                try { upscaleItems.forEach(it => jsZip.file(it.name, it.tmpBlob));
-                                    createDownloadTag(createURL(await jsZip.generateAsync({type:"blob"})), "upscaled.zip");
-                                } catch(e) { console.error(e); }
-                            });
+                                try {
+                                    upscaleItems.forEach(it => jsZip.file(it.name, it.tmpBlob));
+                                    createDownloadTag(createURL(await jsZip.generateAsync({
+                                        type: "blob"
+                                    })), "upscaled.zip");
+                                } catch (e) {
+                                    console.error(e);
+                                }
+                            }
+                            );
                             append(upForm, batchCell);
 
                             // 옵션 패널 (아이템 아래)
-                            const upOpt = createTagClass("div","");
+                            const upOpt = createTagClass("div", "");
                             upOpt.style.cssText = "width:100%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;";
-                            const upOptT = createTagHTML("div","🔍 업스케일 설정");
+                            const upOptT = createTagHTML("div", "🔍 업스케일 설정");
                             upOptT.style.cssText = "font-weight:600;font-size:14px;margin-bottom:4px;";
                             append(upOpt, upOptT);
 
                             const mkRow = (parent, label, options, width) => {
-                                const row = createTagClass("div","selLbl");
-                                createTagClass("span","mainfrmSpan",label,row);
-                                const sel = createTagClass("select","mainfrmSelect",null,row);
+                                const row = createTagClass("div", "selLbl");
+                                createTagClass("span", "mainfrmSpan", label, row);
+                                const sel = createTagClass("select", "mainfrmSelect", null, row);
                                 sel.style.width = width || "180px";
-                                options.forEach(([v,t])=>{const o=createTagClass("option","",t);o.value=v;append(sel,o);});
-                                append(parent,row);
+                                options.forEach(([v, t]) => {
+                                    const o = createTagClass("option", "", t);
+                                    o.value = v;
+                                    append(sel, o);
+                                }
+                                );
+                                append(parent, row);
                                 return sel;
-                            };
+                            }
+                                ;
 
-                            const upModelSel = mkRow(upOpt,"모델",[["swin_unet,art","🎨 SwinUNet Art"],["swin_unet,art_scan","🎨 SwinUNet Art Scan"],["swin_unet,photo","📷 SwinUNet Photo"],["cunet,art","🎨 CUNet Art"]],"200px");
-                            const upScaleSel = mkRow(upOpt,"스케일",[["scale2x","2x"],["scale4x","4x"]],"200px");
-                            const upNoiseSel = mkRow(upOpt,"노이즈 제거",[["none","없음"],["noise0","약"],["noise1","중"],["noise2","강"],["noise3","최강"]],"200px");
-                            const upTileSel = mkRow(upOpt,"타일",[["64","64"],["128","128"],["256","256"]],"200px");
+                            const upModelSel = mkRow(upOpt, "모델", [["swin_unet,art", "🎨 SwinUNet Art"], ["swin_unet,art_scan", "🎨 SwinUNet Art Scan"], ["swin_unet,photo", "📷 SwinUNet Photo"], ["cunet,art", "🎨 CUNet Art"]], "200px");
+                            const upScaleSel = mkRow(upOpt, "스케일", [["scale2x", "2x"], ["scale4x", "4x"]], "200px");
+                            const upNoiseSel = mkRow(upOpt, "노이즈 제거", [["none", "없음"], ["noise0", "약"], ["noise1", "중"], ["noise2", "강"], ["noise3", "최강"]], "200px");
+                            const upTileSel = mkRow(upOpt, "타일", [["64", "64"], ["128", "128"], ["256", "256"]], "200px");
                             upTileSel.value = "64";
 
-                            const upAlphaChk = makeChkbox(upOpt, "알파 채널 유지");
+                            const upAlphaRow = createTagClass("div", "selLbl");
+                            const upAlphaChk = makeChkbox(upAlphaRow, "알파 채널 유지");
                             upAlphaChk.checked = false;
+                            const upTranspColorLabel = createTagClass("span", "mainfrmSpan", "투명색", upAlphaRow);
+                            upTranspColorLabel.style.marginLeft = "12px";
+                            const upTranspColor = createControl("color", upAlphaRow);
+                            upTranspColor.value = "#00ff00";
+                            upTranspColor.style.cssText = "width:32px;height:24px;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;padding:0;vertical-align:middle;";
+                            upTranspColorLabel.style.display = "none";
+                            upTranspColor.style.display = "none";
+                            upAlphaChk.addEventListener("change", () => {
+                                const show = upAlphaChk.checked ? "inline" : "none";
+                                upTranspColorLabel.style.display = show;
+                                upTranspColor.style.display = show;
+                            });
+                            append(upOpt, upAlphaRow);
 
                             // 프로그레스
-                            const upPW = createTagClass("div","");
+                            const upPW = createTagClass("div", "");
                             upPW.style.cssText = "width:100%;background:#e5e7eb;border-radius:8px;height:24px;overflow:hidden;position:relative;";
-                            const upPB = createTagClass("div","");
+                            const upPB = createTagClass("div", "");
                             upPB.style.cssText = "height:100%;width:0%;background:linear-gradient(135deg,#10b981,#059669);transition:width 0.3s;border-radius:8px;";
-                            const upPT = createTagClass("span","");
+                            const upPT = createTagClass("span", "");
                             upPT.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;font-weight:600;color:#374151;";
                             upPT.textContent = "대기 중";
-                            append(upPW,upPB);append(upPW,upPT);append(upOpt,upPW);
+                            append(upPW, upPB);
+                            append(upPW, upPT);
+                            append(upOpt, upPW);
 
-                            const upBtn = createTagClass("button","mainfrmBtn1","🔍 업스케일 시작");
+                            const upBtn = createTagClass("button", "mainfrmBtn1", "🔍 업스케일 시작");
                             upBtn.style.cssText = "width:100%;background:linear-gradient(135deg,#8b5cf6,#6d28d9);";
-                            append(upOpt,upBtn);
-                            append(upForm,upOpt);
-                            append(document.body,upForm);
+                            append(upOpt, upBtn);
+                            append(upForm, upOpt);
+                            append(document.body, upForm);
 
                             let upCancelled = false;
                             upBtn.addEventListener("click", async () => {
                                 // 진행 중이면 정지
-                                if (upBtn.dataset.running === "1") { upCancelled = true; upBtn.dataset.running = "0"; upBtn.textContent = "🔍 업스케일 시작"; upPT.textContent = "⏸️ 정지됨"; return; }
-                                upCancelled = false; upBtn.dataset.running = "1";
+                                if (upBtn.dataset.running === "1") {
+                                    upCancelled = true;
+                                    upBtn.dataset.running = "0";
+                                    upBtn.textContent = "🔍 업스케일 시작";
+                                    upPT.textContent = "⏸️ 정지됨";
+                                    return;
+                                }
+                                upCancelled = false;
+                                upBtn.dataset.running = "1";
                                 upBtn.textContent = "⏹ 정지";
-                                upPB.style.width = "0%"; upPT.textContent = "준비 중...";
-                                const mBase=upModelSel.value, sVal=upScaleSel.value, nVal=upNoiseSel.value;
-                                const tile=parseInt(upTileSel.value), alpha=upAlphaChk.checked;
-                                const scale = sVal==="scale4x"?4:2;
-                                const model = mBase+","+(nVal!=="none"?nVal+"_":"")+sVal;
-                                const alphaM = alpha?mBase+","+sVal:null;
+                                upPB.style.width = "0%";
+                                upPT.textContent = "준비 중...";
+                                const mBase = upModelSel.value
+                                    , sVal = upScaleSel.value
+                                    , nVal = upNoiseSel.value;
+                                const tile = parseInt(upTileSel.value)
+                                    , alpha = upAlphaChk.checked;
+                                const scale = sVal === "scale4x" ? 4 : 2;
+                                const model = mBase + "," + (nVal !== "none" ? nVal + "_" : "") + sVal;
+                                const alphaM = alpha ? mBase + "," + sVal : null;
 
                                 if (!window.__waifu2xWorkers) {
                                     upPT.textContent = "waifu2x 로딩 중...";
                                     try {
-                                        const [a,b] = await Promise.all([fetch(ONNX_RUNTIME_URL),fetch(WAIFU2X_WORKER_URL)]);
-                                        const code = (await a.text())+"\n;\n"+(await b.text());
-                                        const bUrl = createURL(new Blob([code],{type:'application/javascript'}));
-                                        const n = Math.min(navigator.hardwareConcurrency||2,8), ws=[], ps=[];
-                                        for(let i=0;i<n;i++){const w=new Worker(bUrl);ps.push(new Promise(r=>{w.onmessage=e=>{if(e.data.type==="ready")r();};}));w.postMessage({type:"init",modelBase:WAIFU2X_MODEL_BASE});ws.push(w);}
-                                        await Promise.all(ps); window.__waifu2xWorkers=ws;
-                                    } catch(e){upPT.textContent="로딩 실패: "+e.message;upBtn.dataset.running="0";upBtn.textContent="🔍 업스케일 시작";return;}
+                                        const [a, b] = await Promise.all([fetch(ONNX_RUNTIME_URL), fetch(WAIFU2X_WORKER_URL)]);
+                                        const code = (await a.text()) + "\n;\n" + (await b.text());
+                                        const bUrl = createURL(new Blob([code], {
+                                            type: 'application/javascript'
+                                        }));
+                                        const n = navigator.hardwareConcurrency || 4
+                                            , ws = []
+                                            , ps = [];
+                                        for (let i = 0; i < n; i++) {
+                                            const w = new Worker(bUrl);
+                                            ps.push(new Promise(r => {
+                                                w.onmessage = e => {
+                                                    if (e.data.type === "ready")
+                                                        r();
+                                                }
+                                            }
+                                            ));
+                                            w.postMessage({
+                                                type: "init",
+                                                modelBase: WAIFU2X_MODEL_BASE
+                                            });
+                                            ws.push(w);
+                                        }
+                                        await Promise.all(ps);
+                                        window.__waifu2xWorkers = ws;
+                                    } catch (e) {
+                                        upPT.textContent = "로딩 실패: " + e.message;
+                                        upBtn.dataset.running = "0";
+                                        upBtn.textContent = "🔍 업스케일 시작";
+                                        return;
+                                    }
                                 }
-                                const pool=window.__waifu2xWorkers;
-                                let done=0; const total=upscaleItems.length;
-                                const prog=(extra)=>{const p=Math.round(done/total*100);upPB.style.width=p+"%";upPT.textContent=`${done}/${total} (${p}%)`+(extra||"");};
+                                const pool = window.__waifu2xWorkers;
+                                let done = 0;
+                                const total = upscaleItems.length;
+                                const prog = (extra) => {
+                                    const p = Math.round(done / total * 100);
+                                    upPB.style.width = p + "%";
+                                    upPT.textContent = `${done}/${total} (${p}%)` + (extra || "");
+                                }
+                                    ;
 
                                 // 동적 워커 디스패치: 유휴 워커에 즉시 작업 할당
                                 const wFree = pool.map(() => true);
                                 const pending = [];
-                                const dispatch = (imageData, fid) => new Promise(resolve => {
+                                const dispatch = (imageData, fid, useAlpha = alpha) => new Promise(resolve => {
                                     const tryRun = () => {
-                                        if (upCancelled) { resolve(imageData); return; }
+                                        if (upCancelled) {
+                                            resolve(imageData);
+                                            return;
+                                        }
                                         const wi = wFree.indexOf(true);
-                                        if (wi === -1) { pending.push(tryRun); return; }
+                                        if (wi === -1) {
+                                            pending.push(tryRun);
+                                            return;
+                                        }
                                         wFree[wi] = false;
                                         const wk = pool[wi];
                                         const h = e => {
@@ -2135,62 +2377,215 @@ input[type=checkbox]:checked::after {
                                                 wk.removeEventListener("message", h);
                                                 wFree[wi] = true;
                                                 resolve(e.data.type === "result" ? e.data.imageData : imageData);
-                                                if (pending.length > 0) pending.shift()();
+                                                if (pending.length > 0)
+                                                    pending.shift()();
                                             }
-                                        };
+                                        }
+                                            ;
                                         wk.addEventListener("message", h);
                                         const cl = new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);
-                                        wk.postMessage({type:"process",frameIndex:fid,imageData:cl,options:{model,tile,tile_random:false,tta_level:0,alpha_enabled:alpha,alpha_config:alphaM}},[cl.data.buffer]);
-                                    };
+                                        wk.postMessage({
+                                            type: "process",
+                                            frameIndex: fid,
+                                            imageData: cl,
+                                            options: {
+                                                model,
+                                                tile,
+                                                tile_random: false,
+                                                tta_level: 0,
+                                                alpha_enabled: useAlpha,
+                                                alpha_config: useAlpha ? alphaM : null
+                                            }
+                                        }, [cl.data.buffer]);
+                                    }
+                                        ;
                                     tryRun();
-                                });
+                                }
+                                );
 
-                                const doStatic = async (item,idx) => {
-                                    if(upCancelled) return;
-                                    const im=new Image();await new Promise(r=>{im.onload=r;im.onerror=r;im.src=item.url;});
-                                    const c=document.createElement("canvas");c.width=im.naturalWidth;c.height=im.naturalHeight;
-                                    const cx=c.getContext("2d",{willReadFrequently:true});cx.drawImage(im,0,0);
-                                    const d=cx.getImageData(0,0,c.width,c.height);
-                                    const fid=idx*10000;
-                                    const res=await dispatch(d, fid);
-                                    const oc=document.createElement("canvas");oc.width=res.width;oc.height=res.height;oc.getContext("2d").putImageData(res,0,0);
-                                    const bl=await new Promise(r=>oc.toBlob(r,"image/png"));
-                                    if(bl){const nn=item.name.replace(/\.[^.]+$/,".png");jsZip.remove(item.name);jsZip.file(nn,bl);item.name=nn;item.tmpBlob=bl;upSetImgBlob(idx,bl,"🔍 ");item.info.itemtag.style.borderColor="#8b5cf6";}
-                                    done++;prog();
-                                };
-                                const doGif = async (item,idx) => {
-                                    if(upCancelled) return;
-                                    const ab=await item.tmpBlob.arrayBuffer();
-                                    const fOff=idx*10000;const bl=await new Promise(resolve=>{const eg=GIFS();eg.dec.load({files:[],buffers:[ab],oncomplete:async F=>{if(!F||!F[0]){resolve(null);return;}const g=F[0],fr=g.frames,oW=g.screenDescriptor.width,oH=g.screenDescriptor.height;const fl=fr.map((f,i)=>({index:i,imageData:(f.context||f.canvas.getContext("2d")).getImageData(0,0,f.canvas.width,f.canvas.height),delay:f.graphicsControl?f.graphicsControl.delay:5,disposal:f.graphicsControl?f.graphicsControl.disposal:0}));const uf=new Array(fl.length);let fDone=0;await Promise.all(fl.map(fd=>(async()=>{const gfid=fOff+fd.index;uf[fd.index]=await dispatch(fd.imageData,gfid);fDone++;prog(` │ 프레임 ${fDone}/${fl.length}`);})()));const enc=eg.enc();enc.setRepeat(0);enc.setQuality(6);enc.setGifSize(oW*scale,oH*scale);enc.start();for(let i=0;i<uf.length;i++){enc.setDelay((fl[i].delay||5)*10);enc.setDispose(fl[i].disposal);enc.addFrame(uf[i],true,false);}enc.finish();resolve(enc.toBlob());},onerror:()=>resolve(null)});});
-                                    if(bl){item.tmpBlob=bl;jsZip.file(item.name,bl);upSetImgBlob(idx,bl,"🔍 ");item.info.itemtag.style.borderColor="#8b5cf6";}
-                                    done++;prog();
-                                };
+                                const doStatic = async (item, idx) => {
+                                    if (upCancelled)
+                                        return;
+                                    const im = new Image();
+                                    await new Promise(r => {
+                                        im.onload = r;
+                                        im.onerror = r;
+                                        im.src = item.url;
+                                    }
+                                    );
+                                    const c = document.createElement("canvas");
+                                    c.width = im.naturalWidth;
+                                    c.height = im.naturalHeight;
+                                    const cx = c.getContext("2d", {
+                                        willReadFrequently: true
+                                    });
+                                    cx.drawImage(im, 0, 0);
+                                    const d = cx.getImageData(0, 0, c.width, c.height);
+                                    const fid = idx * 10000;
+                                    const res = await dispatch(d, fid);
+                                    const oc = document.createElement("canvas");
+                                    oc.width = res.width;
+                                    oc.height = res.height;
+                                    oc.getContext("2d").putImageData(res, 0, 0);
+                                    const bl = await new Promise(r => oc.toBlob(r, "image/png"));
+                                    if (bl) {
+                                        const nn = item.name.replace(/\.[^.]+$/, ".png");
+                                        jsZip.remove(item.name);
+                                        jsZip.file(nn, bl);
+                                        item.name = nn;
+                                        item.tmpBlob = bl;
+                                        upSetImgBlob(idx, bl, "🔍 ");
+                                        item.info.itemtag.style.borderColor = "#8b5cf6";
+                                    }
+                                    done++;
+                                    prog();
+                                }
+                                    ;
+                                const doGif = async (item, idx) => {
+                                    if (upCancelled)
+                                        return;
+                                    const ab = await item.tmpBlob.arrayBuffer();
+                                    const fOff = idx * 10000;
+                                    const bl = await new Promise(resolve => {
+                                        const eg = GIFS();
+                                        eg.dec.load({
+                                            files: [],
+                                            buffers: [ab],
+                                            oncomplete: async F => {
+                                                if (!F || !F[0]) {
+                                                    resolve(null);
+                                                    return;
+                                                }
+                                                const g = F[0]
+                                                    , fr = g.frames
+                                                    , oW = g.screenDescriptor.width
+                                                    , oH = g.screenDescriptor.height;
+                                                const fl = fr.map((f, i) => ({
+                                                    index: i,
+                                                    imageData: (f.context || f.canvas.getContext("2d")).getImageData(0, 0, f.canvas.width, f.canvas.height),
+                                                    delay: f.graphicsControl ? f.graphicsControl.delay : 5,
+                                                    disposal: f.graphicsControl ? f.graphicsControl.disposal : 0,
+                                                    hasTransp: f.graphicsControl ? f.graphicsControl.transparencyIndex !== undefined && f.graphicsControl.transparencyIndex !== false : false
+                                                }));
+                                                const hasAnyTransp = fl.some(fd => fd.hasTransp || (() => {
+                                                    const d = fd.imageData.data;
+                                                    for (let i = 3; i < d.length; i += 4)
+                                                        if (d[i] < 128)
+                                                            return true;
+                                                    return false;
+                                                }
+                                                )());
+                                                const uf = new Array(fl.length);
+                                                let fDone = 0;
+                                                await Promise.all(fl.map(fd => (async () => {
+                                                    const gfid = fOff + fd.index;
+                                                    uf[fd.index] = await dispatch(fd.imageData, gfid);
+                                                    fDone++;
+                                                    prog(` │ 프레임 ${fDone}/${fl.length}`);
+                                                }
+                                                )()));
+                                                const enc = eg.enc();
+                                                enc.setRepeat(0);
+                                                enc.setQuality(6);
+                                                enc.setGifSize(oW * scale, oH * scale);
+                                                enc.start();
+                                                for (let i = 0; i < uf.length; i++) {
+                                                    const frame = uf[i];
+                                                    if (hasAnyTransp && alpha) {
+                                                        const tc = upTranspColor.value;
+                                                        const tR = parseInt(tc.slice(1,3),16), tG = parseInt(tc.slice(3,5),16), tB = parseInt(tc.slice(5,7),16);
+                                                        const transpKey = (tR << 16) | (tG << 8) | tB;
+                                                        const d = frame.data;
+                                                        let hasTranspPixel = false;
+                                                        for (let p = 3; p < d.length; p += 4) {
+                                                            if (d[p] < 128) {
+                                                                d[p - 3] = tR;
+                                                                d[p - 2] = tG;
+                                                                d[p - 1] = tB;
+                                                                d[p] = 255;
+                                                                hasTranspPixel = true;
+                                                            }
+                                                        }
+                                                        if (hasTranspPixel)
+                                                            enc.setTransparent(transpKey);
+                                                        else
+                                                            enc.setTransparent(null);
+                                                    } else {
+                                                        enc.setTransparent(null);
+                                                    }
+                                                    enc.setDelay((fl[i].delay || 5) * 10);
+                                                    enc.setDispose(fl[i].disposal);
+                                                    enc.addFrame(frame, true, false);
+                                                }
+                                                enc.finish();
+                                                resolve(enc.toBlob());
+                                            }
+                                            ,
+                                            onerror: () => resolve(null)
+                                        });
+                                    }
+                                    );
+                                    if (bl) {
+                                        item.tmpBlob = bl;
+                                        jsZip.file(item.name, bl);
+                                        upSetImgBlob(idx, bl, "🔍 ");
+                                        item.info.itemtag.style.borderColor = "#8b5cf6";
+                                    }
+                                    done++;
+                                    prog();
+                                }
+                                    ;
 
                                 // 아이템 큐: 워커 수만큼 러너 생성 + 동적 디스패치로 모든 워커 활용
-                                const q = upscaleItems.map((it,i)=>({item:it,idx:i}));
-                                const run = async()=>{while(q.length>0&&!upCancelled){const{item,idx}=q.shift();if(item.extension==="gif")await doGif(item,idx);else await doStatic(item,idx);}};
-                                await Promise.all(Array.from({length:Math.min(pool.length, q.length)},()=>run()));
+                                const q = upscaleItems.map((it, i) => ({
+                                    item: it,
+                                    idx: i
+                                }));
+                                const run = async () => {
+                                    while (q.length > 0 && !upCancelled) {
+                                        const { item, idx } = q.shift();
+                                        if (item.extension === "gif")
+                                            await doGif(item, idx);
+                                        else
+                                            await doStatic(item, idx);
+                                    }
+                                }
+                                    ;
+                                await Promise.all(Array.from({
+                                    length: Math.min(pool.length, q.length)
+                                }, () => run()));
 
                                 upBtn.dataset.running = "0";
-                                if(!upCancelled){ upPB.style.width="100%"; upPT.textContent="✅ 업스케일 완료!"; setStatus("업스케일 완료!"); }
-                                upBtn.textContent="🔍 업스케일 시작";
-                            });
+                                if (!upCancelled) {
+                                    upPB.style.width = "100%";
+                                    upPT.textContent = "✅ 업스케일 완료!";
+                                    setStatus("업스케일 완료!");
+                                }
+                                upBtn.textContent = "🔍 업스케일 시작";
+                            }
+                            );
 
                         }
 
-                    });
-                }; // End of executeDownloadsAndFinish
+                    }
+                    );
+                }
+                    ;
+                // End of executeDownloadsAndFinish
 
                 if (isSelectMode) {
                     document.querySelectorAll(".arcacon-wrapper").forEach(wrapper => {
                         const chk = wrapper.querySelector("input[type='checkbox']");
-                        if (chk) chk.remove();
+                        if (chk)
+                            chk.remove();
                         const children = Array.from(wrapper.childNodes);
                         children.forEach(child => wrapper.parentNode.insertBefore(child, wrapper));
                         wrapper.remove();
-                    });
+                    }
+                    );
                     const oldFloatingBtn = document.getElementById("arcacon-floating-btn");
-                    if (oldFloatingBtn) oldFloatingBtn.remove();
+                    if (oldFloatingBtn)
+                        oldFloatingBtn.remove();
 
                     setStatus(`이미지 ${img_count} 개를 발견했습니다. 선택 대기 중.`);
                     const floatingBtn = createTagClass("button", "mainfrmBtn1", "선택 다운로드", document.body);
@@ -2210,7 +2605,8 @@ input[type=checkbox]:checked::after {
 
                     urls.forEach(emoObj => {
                         const el = emoObj.element;
-                        if (!el) return;
+                        if (!el)
+                            return;
 
                         if (el.parentNode) {
                             const wrapper = createTagClass("div", "arcacon-wrapper", null);
@@ -2230,8 +2626,10 @@ input[type=checkbox]:checked::after {
                             chk.style.boxShadow = "0 0 5px rgba(0,0,0,0.5)";
 
                             const toggleSelect = () => {
-                                if (chk.checked) selectedIdxs.add(emoObj.index);
-                                else selectedIdxs.delete(emoObj.index);
+                                if (chk.checked)
+                                    selectedIdxs.add(emoObj.index);
+                                else
+                                    selectedIdxs.delete(emoObj.index);
 
                                 if (selectedIdxs.size > 0) {
                                     floatingBtn.style.display = "block";
@@ -2239,7 +2637,8 @@ input[type=checkbox]:checked::after {
                                 } else {
                                     floatingBtn.style.display = "none";
                                 }
-                            };
+                            }
+                                ;
 
                             chk.addEventListener("change", toggleSelect);
 
@@ -2249,9 +2648,11 @@ input[type=checkbox]:checked::after {
                                 e.stopPropagation();
                                 chk.checked = !chk.checked;
                                 toggleSelect();
-                            });
+                            }
+                            );
                         }
-                    });
+                    }
+                    );
 
                     floatingBtn.addEventListener("click", () => {
                         floatingBtn.remove();
@@ -2259,35 +2660,43 @@ input[type=checkbox]:checked::after {
 
                         document.querySelectorAll(".arcacon-wrapper").forEach(wrapper => {
                             const chk = wrapper.querySelector("input[type='checkbox']");
-                            if (chk) chk.remove();
+                            if (chk)
+                                chk.remove();
                             const children = Array.from(wrapper.childNodes);
                             children.forEach(child => wrapper.parentNode.insertBefore(child, wrapper));
                             wrapper.remove();
-                        });
+                        }
+                        );
 
                         const selectedUrls = urls.filter(u => selectedIdxs.has(u.index));
                         if (selectedUrls.length > 0) {
                             setStatus(`선택된 이미지 ${selectedUrls.length} 개 다운로드 준비 중...`);
                             urls.forEach(emoObj => {
                                 const el = emoObj.element;
-                                if (el) el.style.cursor = "";
-                            });
+                                if (el)
+                                    el.style.cursor = "";
+                            }
+                            );
                             executeDownloadsAndFinish(selectedUrls);
                         } else {
                             setStatus("선택된 이미지가 없습니다.");
                         }
-                    });
+                    }
+                    );
                 } else {
                     executeDownloadsAndFinish(urls);
                 }
-            });
-        })();
+            }
+            );
+        }
+        )();
 
         formContainer.style.display = "none";
         if (!isSelectMode) {
             alert_tag.style.display = "flex";
         }
-    };
+    }
+        ;
 
     button1.addEventListener("click", () => performTaskLogic(false));
     button3.addEventListener("click", () => performTaskLogic(true));
@@ -2296,10 +2705,12 @@ input[type=checkbox]:checked::after {
         saveSettings(0);
         formContainer.style.display = "none";
         alert_tag.remove();
-    });
+    }
+    );
 
     const autostart = localStorage.getItem(F366C_STR);
 
     if (autostart === "1")
         button1.click();
-})();
+}
+)();
