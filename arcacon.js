@@ -744,16 +744,46 @@ input[type=checkbox]:checked::after {
     const gifEditChk = makeChkbox(form, "GIF 편집");
     const pngConvChk = makeChkbox(form, "PNG 변환");
     const upscaleChk = makeChkbox(form, "업스케일링 (waifu2x)");
-    gifEditChk.addEventListener("change", () => {
-        if (gifEditChk.checked)
-            upscaleChk.checked = false;
-    }
-    );
-    upscaleChk.addEventListener("change", () => {
-        if (upscaleChk.checked)
+    const syncDependencies = () => {
+        if (!gifConvChk.checked) {
             gifEditChk.checked = false;
-    }
-    );
+            gifEditChk.disabled = true;
+        } else {
+            gifEditChk.disabled = false;
+        }
+        
+        if (!gifConvChk.checked || !pngConvChk.checked) {
+            upscaleChk.checked = false;
+            upscaleChk.disabled = true;
+        } else {
+            upscaleChk.disabled = false;
+        }
+    };
+
+    gifConvChk.addEventListener("change", syncDependencies);
+    pngConvChk.addEventListener("change", syncDependencies);
+
+    gifEditChk.addEventListener("change", () => {
+        if (gifEditChk.checked) {
+            if (!gifConvChk.checked) {
+                customAlert("GIF 변환이 체크되어 있어야 사용할 수 있습니다.");
+                gifEditChk.checked = false;
+                return;
+            }
+            upscaleChk.checked = false;
+        }
+    });
+
+    upscaleChk.addEventListener("change", () => {
+        if (upscaleChk.checked) {
+            if (!gifConvChk.checked || !pngConvChk.checked) {
+                customAlert("GIF 변환과 PNG 변환이 모두 체크되어 있어야 사용할 수 있습니다.");
+                upscaleChk.checked = false;
+                return;
+            }
+            gifEditChk.checked = false;
+        }
+    });
 
     // gif 화질 설정칸
     const lossySelectLabel = createTagClass("label", "selLbl", null, form);
@@ -786,6 +816,7 @@ input[type=checkbox]:checked::after {
     gifEditChk.checked = (localStorage.getItem(F366C_STR + "chk2") ?? "false") === "true";
     pngConvChk.checked = (localStorage.getItem(F366C_STR + "chk3") ?? "true") === "true";
     upscaleChk.checked = (localStorage.getItem(F366C_STR + "chk4") ?? "false") === "true";
+    syncDependencies();
 
     const savedLossyValue = setMinMax(localStorage.getItem(F366C_STR + "lossyval"), 1, 100, 100);
     lossySelectCombo.value = savedLossyValue;
