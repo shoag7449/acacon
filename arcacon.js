@@ -2421,12 +2421,12 @@ input[type=checkbox]:checked::after {
                             }
                                 ;
 
-                            const upModelSel = mkRow(upOpt, "모델", [["swin_unet,art", "🎨 SwinUNet Art"], ["swin_unet,art_scan", "🎨 SwinUNet Art Scan"], ["swin_unet,photo", "📷 SwinUNet Photo"], ["cunet,art", "🎨 CUNet Art"]], "200px");
-                            const upScaleSel = mkRow(upOpt, "스케일", [["scale2x", "2x"], ["scale4x", "4x"]], "200px");
-                            const upNoiseSel = mkRow(upOpt, "노이즈 제거", [["none", "없음"], ["noise0", "약"], ["noise1", "중"], ["noise2", "강"], ["noise3", "최강"]], "200px");
-                            const upTileSel = mkRow(upOpt, "타일", [["auto", "자동"], ["64", "64"], ["128", "128"], ["256", "256"], ["400", "400"], ["1024", "1024 (고사양)"]], "200px");
-                            const upGifQualitySel = mkRow(upOpt, "GIF 퀄리티", [["1", "1 (최상)"], ["3", "3"], ["6", "6 (기본)"], ["10", "10"], ["20", "20 (최하)"]], "200px");
-                            const upModeSel = mkRow(upOpt, "연산 모드", [["webgpu", "GPU 가속 (빠름)"], ["wasm", "CPU 멀티코어 (안정적)"]], "200px");
+                            const upModelSel = mkRow(upOpt, "모델", [["swin_unet,art", "🎨 SwinUNet Art"], ["swin_unet,art_scan", "🎨 SwinUNet Art Scan"], ["swin_unet,photo", "📷 SwinUNet Photo"], ["cunet,art", "🎨 CUNet Art"]], "300px");
+                            const upScaleSel = mkRow(upOpt, "스케일", [["scale2x", "2x"], ["scale4x", "4x"]], "300px");
+                            const upNoiseSel = mkRow(upOpt, "노이즈 제거", [["none", "없음"], ["noise0", "약"], ["noise1", "중"], ["noise2", "강"], ["noise3", "최강"]], "300px");
+                            const upTileSel = mkRow(upOpt, "타일", [["auto", "자동"], ["64", "64"], ["128", "128"], ["256", "256"], ["400", "400"], ["1024", "1024 (고사양)"]], "300px");
+                            const upGifQualitySel = mkRow(upOpt, "GIF 퀄리티", [["1", "1 (최상)"], ["3", "3"], ["6", "6 (기본)"], ["10", "10"], ["20", "20 (최하)"]], "300px");
+                            const upModeSel = mkRow(upOpt, "연산 모드", [["webgpu", "GPU 가속 (빠름)"], ["wasm", "CPU 멀티코어 (안정적)"]], "300px");
                             // 기본값: CUNet Art, 2x, 최강, 256
                             upModelSel.value = "cunet,art";
                             upScaleSel.value = "scale2x";
@@ -2452,7 +2452,7 @@ input[type=checkbox]:checked::after {
                             createTagClass("span", "mainfrmSpan", "알파 채널 유지", upAlphaRow);
 
                             const upAlphaRight = createTagClass("div", "", null, upAlphaRow);
-                            upAlphaRight.style.cssText = "display:flex;align-items:center;gap:12px;justify-content:flex-end;width:200px;";
+                            upAlphaRight.style.cssText = "display:flex;align-items:center;gap:12px;justify-content:flex-end;width:300px;";
 
                             const upTranspColorWrap = createTagClass("div", "", null, upAlphaRight);
                             upTranspColorWrap.style.cssText = "display:flex;align-items:center;gap:6px;";
