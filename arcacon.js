@@ -31,7 +31,7 @@
     const ONNX_CDN_BASE = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/";
     const ONNX_RUNTIME_URLS = {
         webgpu: ONNX_CDN_BASE + "ort.webgpu.min.js",  // WebGPU EP 포함 (GPU 가속)
-        wasm:   ONNX_CDN_BASE + "ort.wasm.min.js"      // WASM 전용 (CPU, 경량)
+        wasm: ONNX_CDN_BASE + "ort.wasm.min.js"      // WASM 전용 (CPU, 경량)
     };
     const WAIFU2X_WORKER_URL = "https://shoag7449.github.io/acacon/waifu2x/script_worker.js"; // waifu2x 워커 스크립트
     const WAIFU2X_MODEL_BASE = "https://shoag7449.github.io/acacon/waifu2x"; // waifu2x 모델 기본 경로
@@ -755,7 +755,7 @@ input[type=checkbox]:checked::after {
         } else {
             gifEditChk.disabled = false;
         }
-        
+
         if (!gifConvChk.checked || !pngConvChk.checked) {
             upscaleChk.checked = false;
             upscaleChk.disabled = true;
@@ -2424,7 +2424,7 @@ input[type=checkbox]:checked::after {
                             const upModelSel = mkRow(upOpt, "모델", [["swin_unet,art", "🎨 SwinUNet Art"], ["swin_unet,art_scan", "🎨 SwinUNet Art Scan"], ["swin_unet,photo", "📷 SwinUNet Photo"], ["cunet,art", "🎨 CUNet Art"]], "200px");
                             const upScaleSel = mkRow(upOpt, "스케일", [["scale2x", "2x"], ["scale4x", "4x"]], "200px");
                             const upNoiseSel = mkRow(upOpt, "노이즈 제거", [["none", "없음"], ["noise0", "약"], ["noise1", "중"], ["noise2", "강"], ["noise3", "최강"]], "200px");
-                            const upTileSel = mkRow(upOpt, "타일", [["64", "64"], ["128", "128"], ["256", "256"]], "200px");
+                            const upTileSel = mkRow(upOpt, "타일", [["64", "64"], ["128", "128"], ["256", "256"], ["400", "400"], ["1024", "1024 (고사양)"]], "200px");
                             const upGifQualitySel = mkRow(upOpt, "GIF 퀄리티", [["1", "1 (최상)"], ["3", "3"], ["6", "6 (기본)"], ["10", "10"], ["20", "20 (최하)"]], "200px");
                             const upModeSel = mkRow(upOpt, "연산 모드", [["webgpu", "GPU 가속 (빠름)"], ["wasm", "CPU 멀티코어 (안정적)"]], "200px");
                             // 기본값: CUNet Art, 2x, 최강, 256
@@ -2456,14 +2456,14 @@ input[type=checkbox]:checked::after {
 
                             const upTranspColorWrap = createTagClass("div", "", null, upAlphaRight);
                             upTranspColorWrap.style.cssText = "display:flex;align-items:center;gap:6px;";
-                            
+
                             const upTranspColorLabel = createTagClass("span", "mainfrmSpan", "투명색", upTranspColorWrap);
                             const upTranspColor = createControl("color", upTranspColorWrap);
                             upTranspColor.style.cssText = "width:32px;height:24px;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;padding:0;vertical-align:middle;";
-                            
+
                             const upTranspAutoBtn = createTagClass("button", "", "자동", upTranspColorWrap);
                             upTranspAutoBtn.style.cssText = "background:#4f46e5;color:white;border:none;border-radius:4px;padding:2px 8px;font-size:12px;cursor:pointer;height:24px;font-weight:600;";
-                            
+
                             upTranspAutoBtn.addEventListener("click", async () => {
                                 const oldText = upTranspAutoBtn.textContent;
                                 upTranspAutoBtn.textContent = "분석중...";
@@ -2549,7 +2549,7 @@ input[type=checkbox]:checked::after {
 
                             const upAlphaChk = createControl("checkbox", upAlphaRight);
                             upAlphaChk.style.cssText = "width:18px;height:18px;cursor:pointer;margin:0;";
-                            
+
                             upAlphaChk.addEventListener("change", () => {
                                 upTranspColorWrap.style.display = upAlphaChk.checked ? "flex" : "none";
                                 saveUpOpts();
@@ -2607,7 +2607,7 @@ input[type=checkbox]:checked::after {
                                 if (upBtn.dataset.running === "1") {
                                     upCancelled = true;
                                     if (triggerStopCleanup) triggerStopCleanup();
-                                    
+
                                     upBtn.dataset.running = "0";
                                     upBtn.textContent = "🔍 업스케일 시작";
                                     upPT.textContent = "⏸️ 정지됨 (작업 취소 및 초기화 완료)";
@@ -2681,7 +2681,7 @@ input[type=checkbox]:checked::after {
                                 // 동적 워커 디스패치: 유휴 워커에 즉시 작업 할당
                                 const wFree = pool.map(() => true);
                                 const pending = [];
-                                
+
                                 triggerStopCleanup = () => {
                                     while (pending.length > 0) pending.shift()();
                                     if (window.__waifu2xWorkers) {
@@ -2692,7 +2692,7 @@ input[type=checkbox]:checked::after {
                                         window.__waifu2xWorkers = null;
                                     }
                                 };
-                                
+
                                 const dispatch = (imageData, fid, useAlpha = alpha) => new Promise(resolve => {
                                     const tryRun = () => {
                                         if (upCancelled) {
@@ -2865,7 +2865,7 @@ input[type=checkbox]:checked::after {
                                                         enc.setDelay((fl[nextEncodeIndex].delay || 5) * 10);
                                                         enc.setDispose(fl[nextEncodeIndex].disposal);
                                                         enc.addFrame(frame, true, false);
-                                                        
+
                                                         // 가비지 컬렉터가 수거하도록 참조 해제 (대용량 메모리 최적화)
                                                         uf[nextEncodeIndex] = null;
                                                         nextEncodeIndex++;

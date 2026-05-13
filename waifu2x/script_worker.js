@@ -468,7 +468,7 @@ const onnx_runner = {
         }
         if (block_callback)
             block_callback(0, all_blocks, true);
-        // GPU 파이프라이닝: 다음 타일 추론을 미리 시작하여 CPU 후처리 동안 GPU가 쉬지 않도록 함
+        // GPU 파이프라이닝: 프리페치 깊이 2 — GPU 커맨드 큐를 항상 가득 채움
         const inferTile = async (tile_x, tile_alpha3) => {
             let tile_y, tile_alpha_y = null;
             if (has_alpha) {
@@ -487,37 +487,37 @@ const onnx_runner = {
             return { tile_y, tile_alpha_y };
         };
 
-        // 첫 번째 타일 프리페치
-        let nextPromise = null;
-        {
-            const [i0, j0] = tiles[0];
-            let tile_x0 = this.crop_tensor(x, j0, i0, tile_size, tile_size);
-            let tile_alpha3_0 = has_alpha ? this.crop_tensor(alpha3, j0, i0, tile_size, tile_size) : null;
-            let sc0 = config.color_stability ? this.check_single_color(tile_x0, tile_alpha3_0, has_alpha) : null;
-            if (sc0 == null) {
-                nextPromise = inferTile(tile_x0, tile_alpha3_0);
+        const prepareTile = (tileIdx) => {
+            if (tileIdx >= tiles.length) return null;
+            const [ti, tj] = tiles[tileIdx];
+            let tx = this.crop_tensor(x, tj, ti, tile_size, tile_size);
+            let ta = has_alpha ? this.crop_tensor(alpha3, tj, ti, tile_size, tile_size) : null;
+            let sc = config.color_stability ? this.check_single_color(tx, ta, has_alpha) : null;
+            if (sc == null) {
+                return inferTile(tx, ta);
             } else {
-                nextPromise = Promise.resolve({ single_color: sc0 });
+                return Promise.resolve({ single_color: sc });
             }
+        };
+
+        // 프리페치 큐 초기화 (깊이 2)
+        const PREFETCH_DEPTH = 2;
+        const prefetchQueue = [];
+        for (let pf = 0; pf < Math.min(PREFETCH_DEPTH, tiles.length); pf++) {
+            prefetchQueue.push(prepareTile(pf));
         }
+        let nextPrepareIdx = PREFETCH_DEPTH;
 
         for (var k = 0; k < tiles.length; ++k) {
             const [i, j, ii, jj, h_i, w_i] = tiles[k];
 
             // 현재 타일의 GPU 결과를 수령
-            const currentResult = await nextPromise;
+            const currentResult = await prefetchQueue.shift();
 
-            // 다음 타일의 GPU 추론을 즉시 시작 (프리페치) — 현재 타일 CPU 후처리와 병렬 진행
-            if (k + 1 < tiles.length) {
-                const [ni, nj] = tiles[k + 1];
-                let next_tile_x = this.crop_tensor(x, nj, ni, tile_size, tile_size);
-                let next_tile_alpha3 = has_alpha ? this.crop_tensor(alpha3, nj, ni, tile_size, tile_size) : null;
-                let next_sc = config.color_stability ? this.check_single_color(next_tile_x, next_tile_alpha3, has_alpha) : null;
-                if (next_sc == null) {
-                    nextPromise = inferTile(next_tile_x, next_tile_alpha3);
-                } else {
-                    nextPromise = Promise.resolve({ single_color: next_sc });
-                }
+            // 다음 프리페치 투입 — GPU 큐를 항상 가득 채움
+            if (nextPrepareIdx < tiles.length) {
+                prefetchQueue.push(prepareTile(nextPrepareIdx));
+                nextPrepareIdx++;
             }
 
             // CPU 후처리: SeamBlending + Canvas 기록
