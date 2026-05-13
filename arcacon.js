@@ -2405,35 +2405,87 @@ input[type=checkbox]:checked::after {
                             upOptT.style.cssText = "font-weight:600;font-size:14px;margin-bottom:4px;";
                             append(upOpt, upOptT);
 
-                            const mkRow = (parent, label, options, width) => {
+                            const attachTooltip = (parentElem, tooltipText) => {
+                                const help = createTagClass("span", "", "?", parentElem);
+                                help.style.cssText = "display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#cbd5e1;color:white;font-size:10px;font-weight:bold;cursor:help;";
+                                const tt = createTagClass("div", "", tooltipText);
+                                tt.style.cssText = "position:fixed;background:rgba(0,0,0,0.85);color:white;padding:8px 12px;border-radius:6px;font-size:12px;white-space:pre-wrap;width:max-content;min-width:150px;max-width:320px;text-align:left;line-height:1.4;display:none;z-index:2147483647;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);";
+                                
+                                help.addEventListener("mouseenter", () => {
+                                    document.body.appendChild(tt);
+                                    const rect = help.getBoundingClientRect();
+                                    tt.style.display = "block";
+                                    const ttRect = tt.getBoundingClientRect();
+                                    tt.style.left = Math.max(10, rect.left + rect.width / 2 - ttRect.width / 2) + "px";
+                                    tt.style.top = Math.max(10, rect.top - ttRect.height - 8) + "px";
+                                });
+                                help.addEventListener("mouseleave", () => {
+                                    tt.style.display = "none";
+                                    if (tt.parentNode) tt.parentNode.removeChild(tt);
+                                });
+                            };
+
+                            const mkRow = (parent, label, options, width, tooltip) => {
                                 const row = createTagClass("div", "selLbl");
-                                createTagClass("span", "mainfrmSpan", label, row);
+                                const lblWrap = createTagClass("div", "", null, row);
+                                lblWrap.style.cssText = "display:flex;align-items:center;gap:4px;";
+                                createTagClass("span", "mainfrmSpan", label, lblWrap);
+                                
+                                if (tooltip) {
+                                    attachTooltip(lblWrap, tooltip);
+                                }
+
                                 const sel = createTagClass("select", "mainfrmSelect", null, row);
                                 sel.style.width = width || "180px";
                                 options.forEach(([v, t]) => {
                                     const o = createTagClass("option", "", t);
                                     o.value = v;
                                     append(sel, o);
-                                }
-                                );
+                                });
                                 append(parent, row);
                                 return sel;
-                            }
+                            };
                                 ;
 
-                            const upModelSel = mkRow(upOpt, "모델", [["swin_unet,art", "🎨 SwinUNet Art"], ["swin_unet,art_scan", "🎨 SwinUNet Art Scan"], ["swin_unet,photo", "📷 SwinUNet Photo"], ["cunet,art", "🎨 CUNet Art"]], "250px");
-                            const upScaleSel = mkRow(upOpt, "스케일", [["scale2x", "2x"], ["scale4x", "4x"]], "250px");
-                            const upNoiseSel = mkRow(upOpt, "노이즈 제거", [["none", "없음"], ["noise0", "약"], ["noise1", "중"], ["noise2", "강"], ["noise3", "최강"]], "250px");
-                            const upTileSel = mkRow(upOpt, "타일", [["auto", "자동"], ["64", "64"], ["128", "128"], ["256", "256"], ["400", "400"], ["1024", "1024 (고사양)"]], "250px");
-                            const upGifQualitySel = mkRow(upOpt, "GIF 퀄리티", [["1", "1 (최상)"], ["3", "3"], ["6", "6 (기본)"], ["10", "10"], ["20", "20 (최하)"]], "250px");
-                            const upModeSel = mkRow(upOpt, "연산 모드", [["webgpu", "GPU 가속 (빠름)"], ["wasm", "CPU 멀티코어 (안정적)"]], "250px");
+                            const upModelSel = mkRow(upOpt, "모델", [
+                                ["swin_unet,art", "🎨 SwinUNet Art"],
+                                ["swin_unet,art_scan", "🎨 SwinUNet Art Scan"],
+                                ["swin_unet,photo", "📷 SwinUNet Photo"],
+                                ["cunet,art", "🎨 CUNet Art"]
+                            ], "250px", "사용할 AI 모델:\n• SwinUNet Art: 2D 애니/일러스트에 최적화(권장)\n• SwinUNet Photo: 실사 사진, 풍경에 적합\n• CUNet Art: 구형 모델로 가벼우나 품질은 낮음");
+
+                            const upScaleSel = mkRow(upOpt, "스케일", [
+                                ["scale2x", "2x"],
+                                ["scale4x", "4x"]
+                            ], "250px", "이미지의 가로/세로를 몇 배로 확대할지 선택합니다. (4x 선택 시 픽셀 수는 16배로 증가하여 연산 시간이 크게 깁니다)");
+
+                            const upNoiseSel = mkRow(upOpt, "노이즈 제거", [
+                                ["none", "없음"], ["noise0", "약"], ["noise1", "중"], ["noise2", "강"], ["noise3", "최강"]
+                            ], "250px", "압축으로 인한 열화(JPG 노이즈 등)를 제거합니다.\n⚠️ 주의: 노이즈가 없는 깨끗한 원본 이미지에 '강~최강'을 적용하면 미세한 펜선이나 질감(디테일)까지 뭉개져서 수채화처럼 흐려지는 역효과가 납니다. 원본이 깨끗하다면 '없음'이나 '약'을 권장합니다.");
+
+                            const upTileSel = mkRow(upOpt, "타일", [
+                                ["auto", "자동"], ["64", "64"], ["128", "128"], ["256", "256"], ["400", "400"], ["1024", "1024 (고사양)"]
+                            ], "250px", "이미지를 바둑판처럼 잘라내어(타일) GPU에 보낼 크기를 결정합니다.\n타일이 너무 크면 GPU 메모리 초과(OOM)로 오류가 나고, 너무 작으면 처리 속도가 하락합니다. 알아서 최적을 찾아주는 '자동'을 권장합니다.");
+
+                            const upGifQualitySel = mkRow(upOpt, "GIF 퀄리티", [
+                                ["1", "1 (최상)"], ["3", "3"], ["6", "6 (기본)"], ["10", "10"], ["20", "20 (최하)"]
+                            ], "250px", "결과물 GIF의 압축 품질(색상 양자화 등)을 결정합니다.\n1에 가까울수록 색상 손실이 없는 고품질이 되지만 용량이 급격히 늘어납니다.");
+
+                            const upModeSel = mkRow(upOpt, "연산 모드", [
+                                ["webgpu", "GPU 가속 (빠름)"], ["wasm", "CPU 멀티코어 (안정적)"]
+                            ], "250px", "• GPU 가속: 그래픽카드를 사용하여 매우 빠릅니다. (일부 브라우저에서 호환성 문제 발생 가능)\n• CPU: 속도는 느리지만 시스템을 가리지 않고 안정적으로 동작합니다.");
+
+                            const upTtaSel = mkRow(upOpt, "TTA (품질 극대화)", [
+                                ["0", "0 (사용 안 함)"], ["2", "2 (약간 향상)"], ["4", "4 (높은 향상)"], ["8", "8 (최상/매우 느림)"]
+                            ], "250px", "이미지를 다각도(회전/반전)로 여러 번 분석해 오차를 보정하고 병합하는 기술입니다.\n복잡한 선이나 패턴에서 효과가 매우 뛰어나지만, 레벨(2~8배)만큼 시간이 정직하게 배수로 늘어나므로 시간적 여유가 있을 때만 사용하세요.");
                             // 기본값: CUNet Art, 2x, 최강, 256
                             upModelSel.value = "cunet,art";
                             upScaleSel.value = "scale2x";
-                            upNoiseSel.value = "noise3";
+                            upNoiseSel.value = "noise1";
                             upTileSel.value = "auto";
                             upGifQualitySel.value = "1";
                             upModeSel.value = navigator.gpu ? "webgpu" : "wasm";
+                            upTtaSel.value = "0";
 
                             // CUNet은 scale4x 미지원 → 동적 제한
                             const scale4xOpt = upScaleSel.querySelector('option[value="scale4x"]');
@@ -2449,7 +2501,11 @@ input[type=checkbox]:checked::after {
 
                             const upAlphaRow = createTagClass("div", "selLbl");
                             upAlphaRow.style.minHeight = "36px";
-                            createTagClass("span", "mainfrmSpan", "알파 채널 유지", upAlphaRow);
+                            const alphaLblWrap = createTagClass("div", "", null, upAlphaRow);
+                            alphaLblWrap.style.cssText = "display:flex;align-items:center;gap:4px;";
+                            createTagClass("span", "mainfrmSpan", "알파 채널 유지", alphaLblWrap);
+                            attachTooltip(alphaLblWrap, "이미지의 투명한 부분(배경)을 유지할지 결정합니다.\n체크 해제 시 투명한 배경이 검은색으로 채워지며, 연산량이 약간 줄어듭니다.");
+
 
                             const upAlphaRight = createTagClass("div", "", null, upAlphaRow);
                             upAlphaRight.style.cssText = "display:flex;align-items:center;gap:12px;justify-content:flex-end;width:250px;";
@@ -2467,7 +2523,7 @@ input[type=checkbox]:checked::after {
                             // localStorage 저장/복원
                             const UP_OPTS_KEY = "arcacon_upscale_opts";
                             const saveUpOpts = () => {
-                                try { localStorage.setItem(UP_OPTS_KEY, JSON.stringify({ model: upModelSel.value, scale: upScaleSel.value, noise: upNoiseSel.value, tile: upTileSel.value, gifQuality: upGifQualitySel.value, mode: upModeSel.value, alpha: upAlphaChk.checked })); } catch (e) { }
+                                try { localStorage.setItem(UP_OPTS_KEY, JSON.stringify({ model: upModelSel.value, scale: upScaleSel.value, noise: upNoiseSel.value, tile: upTileSel.value, gifQuality: upGifQualitySel.value, mode: upModeSel.value, tta: upTtaSel.value, alpha: upAlphaChk.checked })); } catch (e) { }
                             };
                             try {
                                 const saved = JSON.parse(localStorage.getItem(UP_OPTS_KEY));
@@ -2478,23 +2534,32 @@ input[type=checkbox]:checked::after {
                                     if (saved.tile) upTileSel.value = saved.tile;
                                     if (saved.gifQuality) upGifQualitySel.value = saved.gifQuality;
                                     if (saved.mode) upModeSel.value = saved.mode;
+                                    if (saved.tta) upTtaSel.value = saved.tta;
                                     if (saved.alpha !== undefined) upAlphaChk.checked = saved.alpha;
 
                                 }
                             } catch (e) { }
-                            [upModelSel, upScaleSel, upNoiseSel, upTileSel, upGifQualitySel, upModeSel].forEach(s => s.addEventListener("change", saveUpOpts));
+                            [upModelSel, upScaleSel, upNoiseSel, upTileSel, upGifQualitySel, upModeSel, upTtaSel].forEach(s => s.addEventListener("change", saveUpOpts));
 
 
                             // 프로그레스
                             const upPW = createTagClass("div", "");
-                            upPW.style.cssText = "width:100%;background:#e5e7eb;border-radius:8px;height:24px;overflow:hidden;position:relative;";
+                            upPW.style.cssText = "width:100%;background:#e5e7eb;border-radius:8px;height:24px;position:relative;overflow:hidden;";
+                            
+                            const upPT_bg = createTagClass("span", "");
+                            upPT_bg.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;font-weight:600;color:#374151;white-space:nowrap;z-index:1;";
+                            upPT_bg.textContent = "대기 중";
+
                             const upPB = createTagClass("div", "");
-                            upPB.style.cssText = "height:100%;width:0%;background:linear-gradient(135deg,#10b981,#059669);transition:width 0.3s;border-radius:8px;";
-                            const upPT = createTagClass("span", "");
-                            upPT.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;font-weight:600;color:#374151;";
-                            upPT.textContent = "대기 중";
+                            upPB.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#10b981,#059669);z-index:2;clip-path:inset(0 100% 0 0);transition:clip-path 0.3s;";
+                            
+                            const upPT_fg = createTagClass("span", "");
+                            upPT_fg.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;font-weight:600;color:white;white-space:nowrap;";
+                            upPT_fg.textContent = "대기 중";
+
+                            append(upPB, upPT_fg);
+                            append(upPW, upPT_bg);
                             append(upPW, upPB);
-                            append(upPW, upPT);
                             append(upOpt, upPW);
 
                             const upBtn = createTagClass("button", "mainfrmBtn1", "🔍 업스케일 시작");
@@ -2513,26 +2578,27 @@ input[type=checkbox]:checked::after {
 
                                     upBtn.dataset.running = "0";
                                     upBtn.textContent = "🔍 업스케일 시작";
-                                    upPT.textContent = "⏸️ 정지됨 (작업 취소 및 초기화 완료)";
-                                    upPB.style.width = "0%";
+                                    upPT_bg.textContent = upPT_fg.textContent = "⏸️ 정지됨 (작업 취소 및 초기화 완료)";
+                                    upPB.style.clipPath = "inset(0 100% 0 0)";
                                     return;
                                 }
                                 upCancelled = false;
                                 upBtn.dataset.running = "1";
                                 upBtn.textContent = "⏹ 정지";
-                                upPB.style.width = "0%";
-                                upPT.textContent = "준비 중...";
+                                upPB.style.clipPath = "inset(0 100% 0 0)";
+                                upPT_bg.textContent = upPT_fg.textContent = "준비 중...";
                                 const mBase = upModelSel.value
                                     , sVal = upScaleSel.value
                                     , nVal = upNoiseSel.value;
                                 const tile = upTileSel.value === "auto" ? "auto" : parseInt(upTileSel.value)
-                                    , alpha = upAlphaChk.checked;
+                                    , alpha = upAlphaChk.checked
+                                    , tta_level = parseInt(upTtaSel.value);
                                 const scale = sVal === "scale4x" ? 4 : 2;
                                 const model = mBase + "," + (nVal !== "none" ? nVal + "_" : "") + sVal;
                                 const alphaM = alpha ? mBase + "," + sVal : null;
 
                                 if (!window.__waifu2xWorkers) {
-                                    upPT.textContent = "waifu2x 로딩 중...";
+                                    upPT_bg.textContent = upPT_fg.textContent = "waifu2x 로딩 중...";
                                     try {
                                         const epMode = upModeSel.value;
                                         const ortUrl = ONNX_RUNTIME_URLS[epMode] || ONNX_RUNTIME_URLS.wasm;
@@ -2565,7 +2631,7 @@ input[type=checkbox]:checked::after {
                                         await Promise.all(ps);
                                         window.__waifu2xWorkers = ws;
                                     } catch (e) {
-                                        upPT.textContent = "로딩 실패: " + e.message;
+                                        upPT_bg.textContent = upPT_fg.textContent = "로딩 실패: " + e.message;
                                         upBtn.dataset.running = "0";
                                         upBtn.textContent = "🔍 업스케일 시작";
                                         return;
@@ -2576,10 +2642,9 @@ input[type=checkbox]:checked::after {
                                 const total = upscaleItems.length;
                                 const prog = (extra) => {
                                     const p = Math.round(done / total * 100);
-                                    upPB.style.width = p + "%";
-                                    upPT.textContent = `${done}/${total} (${p}%)` + (extra || "");
-                                }
-                                    ;
+                                    upPB.style.clipPath = `inset(0 ${100 - p}% 0 0)`;
+                                    upPT_bg.textContent = upPT_fg.textContent = `${done}/${total} (${p}%)` + (extra || "");
+                                };
 
                                 // 동적 워커 디스패치: 유휴 워커에 즉시 작업 할당
                                 const wFree = pool.map(() => true);
@@ -2633,7 +2698,7 @@ input[type=checkbox]:checked::after {
                                                 model,
                                                 tile,
                                                 tile_random: false,
-                                                tta_level: 0,
+                                                tta_level: tta_level,
                                                 alpha_enabled: useAlpha,
                                                 alpha_config: useAlpha ? alphaM : null
                                             }
@@ -2842,8 +2907,8 @@ input[type=checkbox]:checked::after {
 
                                 upBtn.dataset.running = "0";
                                 if (!upCancelled) {
-                                    upPB.style.width = "100%";
-                                    upPT.textContent = "✅ 업스케일 완료!";
+                                    upPB.style.clipPath = "inset(0 0% 0 0)";
+                                    upPT_bg.textContent = upPT_fg.textContent = "✅ 업스케일 완료!";
                                     setStatus("업스케일 완료!");
                                 }
                                 upBtn.textContent = "🔍 업스케일 시작";
