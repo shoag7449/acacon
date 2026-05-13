@@ -2634,7 +2634,7 @@ input[type=checkbox]:checked::after {
                                             type: 'application/javascript'
                                         }));
                                         const epMode = upModeSel.value;
-                                        const n = navigator.hardwareConcurrency || 4
+                                        const n = epMode === "webgpu" ? 1 : (navigator.hardwareConcurrency || 4)
                                             , ws = []
                                             , ps = [];
                                         for (let i = 0; i < n; i++) {
