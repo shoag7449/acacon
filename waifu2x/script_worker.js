@@ -594,7 +594,12 @@ const onnx_runner = {
         const opModel = options.model.split(",");
         const config = CONFIG.get_config(opModel[0], opModel[1], opModel[2]);
         if (!config) throw new Error("Model not found: " + options.model);
-        const tile_size = config.calc_tile_size(options.tile || 64, config);
+        let ts = options.tile;
+        if (ts === "auto" || !ts) {
+            ts = Math.max(image_data.width, image_data.height);
+            if (ts > 1024) ts = 1024; // VRAM 초과 방지
+        }
+        const tile_size = config.calc_tile_size(ts, config);
         const tile_random = options.tile_random || false;
         const tta_level = options.tta_level || 0;
         const alpha_enabled = options.alpha_enabled || false;
