@@ -29,6 +29,7 @@
     const FFMPEG_CORE_WASM_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm";  // gif 파일 변환 관련 모듈
     const GIF_EDIT_URL = "https://shoag7449.github.io/acacon/gifs.js";  // gif 파일 편집 관련 모듈
     const ONNX_RUNTIME_URL = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.all.min.js"; // waifu2x ONNX 런타임
+    const ONNX_WASM_PATH = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/"; // waifu2x ONNX WASM 경로
     const WAIFU2X_WORKER_URL = "https://shoag7449.github.io/acacon/waifu2x/script_worker.js"; // waifu2x 워커 스크립트
     const WAIFU2X_MODEL_BASE = "https://shoag7449.github.io/acacon/waifu2x"; // waifu2x 모델 기본 경로
     const MODERN_CSS_TEXT = `
@@ -2442,15 +2443,103 @@ input[type=checkbox]:checked::after {
                             syncScaleLimit();
 
                             const upAlphaRow = createTagClass("div", "selLbl");
-                            const upAlphaChk = makeChkbox(upAlphaRow, "알파 채널 유지");
-                            const upTranspColorLabel = createTagClass("span", "mainfrmSpan", "투명색", upAlphaRow);
-                            upTranspColorLabel.style.marginLeft = "12px";
-                            const upTranspColor = createControl("color", upAlphaRow);
+                            upAlphaRow.style.minHeight = "36px";
+                            createTagClass("span", "mainfrmSpan", "알파 채널 유지", upAlphaRow);
+
+                            const upAlphaRight = createTagClass("div", "", null, upAlphaRow);
+                            upAlphaRight.style.cssText = "display:flex;align-items:center;gap:12px;justify-content:flex-end;width:200px;";
+
+                            const upTranspColorWrap = createTagClass("div", "", null, upAlphaRight);
+                            upTranspColorWrap.style.cssText = "display:flex;align-items:center;gap:6px;";
+                            
+                            const upTranspColorLabel = createTagClass("span", "mainfrmSpan", "투명색", upTranspColorWrap);
+                            const upTranspColor = createControl("color", upTranspColorWrap);
                             upTranspColor.style.cssText = "width:32px;height:24px;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;padding:0;vertical-align:middle;";
+                            
+                            const upTranspAutoBtn = createTagClass("button", "", "자동", upTranspColorWrap);
+                            upTranspAutoBtn.style.cssText = "background:#4f46e5;color:white;border:none;border-radius:4px;padding:2px 8px;font-size:12px;cursor:pointer;height:24px;font-weight:600;";
+                            
+                            upTranspAutoBtn.addEventListener("click", async () => {
+                                const oldText = upTranspAutoBtn.textContent;
+                                upTranspAutoBtn.textContent = "분석중...";
+                                upTranspAutoBtn.disabled = true;
+
+                                const candidates = [
+                                    { r: 255, g: 0, b: 255, hex: "#ff00ff", minD: Infinity }, // 마젠타
+                                    { r: 0, g: 255, b: 0, hex: "#00ff00", minD: Infinity },   // 라임
+                                    { r: 0, g: 255, b: 255, hex: "#00ffff", minD: Infinity }, // 시안
+                                    { r: 255, g: 255, b: 0, hex: "#ffff00", minD: Infinity }, // 옐로우
+                                    { r: 255, g: 0, b: 0, hex: "#ff0000", minD: Infinity },   // 레드
+                                    { r: 0, g: 0, b: 255, hex: "#0000ff", minD: Infinity },   // 블루
+                                    { r: 255, g: 255, b: 255, hex: "#ffffff", minD: Infinity } // 화이트
+                                ];
+
+                                const processImageData = (imgData) => {
+                                    const d = imgData.data;
+                                    for (let i = 0; i < d.length; i += 4) {
+                                        if (d[i + 3] < 128) continue;
+                                        const R = d[i], G = d[i + 1], B = d[i + 2];
+                                        for (let c of candidates) {
+                                            const dist = (R - c.r) * (R - c.r) + (G - c.g) * (G - c.g) + (B - c.b) * (B - c.b);
+                                            if (dist < c.minD) c.minD = dist;
+                                        }
+                                    }
+                                };
+
+                                for (const item of upscaleItems) {
+                                    if (item.extension === "gif") {
+                                        await new Promise(r => {
+                                            item.tmpBlob.arrayBuffer().then(ab => {
+                                                const eg = GIFS();
+                                                eg.dec.load({
+                                                    files: [],
+                                                    buffers: [ab],
+                                                    oncomplete: F => {
+                                                        if (F && F[0]) {
+                                                            for (let f of F[0].frames) {
+                                                                const ctx = f.context || f.canvas.getContext("2d");
+                                                                processImageData(ctx.getImageData(0, 0, f.canvas.width, f.canvas.height));
+                                                            }
+                                                        }
+                                                        r();
+                                                    },
+                                                    onerror: r
+                                                });
+                                            });
+                                        });
+                                    } else {
+                                        await new Promise(r => {
+                                            const img = new Image();
+                                            img.onload = () => {
+                                                const cv = document.createElement("canvas");
+                                                cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+                                                const cx = cv.getContext("2d", { willReadFrequently: true });
+                                                cx.drawImage(img, 0, 0);
+                                                processImageData(cx.getImageData(0, 0, cv.width, cv.height));
+                                                r();
+                                            };
+                                            img.onerror = r;
+                                            img.src = item.url;
+                                        });
+                                    }
+                                }
+
+                                let best = candidates[0];
+                                for (let c of candidates) {
+                                    if (c.minD > best.minD) best = c;
+                                }
+
+                                upTranspColor.value = best.hex;
+                                saveUpOpts();
+                                upTranspAutoBtn.textContent = oldText;
+                                upTranspAutoBtn.disabled = false;
+                            });
+
+                            const upAlphaChk = createControl("checkbox", upAlphaRight);
+                            upAlphaChk.style.cssText = "width:18px;height:18px;cursor:pointer;margin:0;";
+                            
                             upAlphaChk.addEventListener("change", () => {
-                                const show = upAlphaChk.checked ? "inline" : "none";
-                                upTranspColorLabel.style.display = show;
-                                upTranspColor.style.display = show;
+                                upTranspColorWrap.style.display = upAlphaChk.checked ? "flex" : "none";
                                 saveUpOpts();
                             });
                             append(upOpt, upAlphaRow);
@@ -2473,8 +2562,9 @@ input[type=checkbox]:checked::after {
                                 }
                             } catch (e) { }
                             if (!upAlphaChk.checked) {
-                                upTranspColorLabel.style.display = "none";
-                                upTranspColor.style.display = "none";
+                                upTranspColorWrap.style.display = "none";
+                            } else {
+                                upTranspColorWrap.style.display = "flex";
                             }
                             [upModelSel, upScaleSel, upNoiseSel, upTileSel, upGifQualitySel].forEach(s => s.addEventListener("change", saveUpOpts));
                             upTranspColor.addEventListener("input", saveUpOpts);
@@ -2543,7 +2633,8 @@ input[type=checkbox]:checked::after {
                                             ));
                                             w.postMessage({
                                                 type: "init",
-                                                modelBase: WAIFU2X_MODEL_BASE
+                                                modelBase: WAIFU2X_MODEL_BASE,
+                                                wasmPaths: ONNX_WASM_PATH
                                             });
                                             ws.push(w);
                                         }
