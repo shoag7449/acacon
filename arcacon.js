@@ -2679,8 +2679,7 @@ input[type=checkbox]:checked::after {
                                     ;
 
                                 // 동적 워커 디스패치: 유휴 워커에 즉시 작업 할당
-                                const maxLoad = upModeSel.value === "webgpu" ? 2 : 1; // GPU 모드에서는 파이프라이닝을 위해 큐를 2개 열어 끊김없이 연산
-                                const wLoad = pool.map(() => 0);
+                                const wFree = pool.map(() => true);
                                 const pending = [];
                                 
                                 triggerStopCleanup = () => {
@@ -2700,27 +2699,17 @@ input[type=checkbox]:checked::after {
                                             resolve(imageData);
                                             return;
                                         }
-                                        
-                                        let minLoad = Infinity;
-                                        let wi = -1;
-                                        for (let i = 0; i < pool.length; i++) {
-                                            if (wLoad[i] < maxLoad && wLoad[i] < minLoad) {
-                                                minLoad = wLoad[i];
-                                                wi = i;
-                                            }
-                                        }
-                                        
+                                        const wi = wFree.indexOf(true);
                                         if (wi === -1) {
                                             pending.push(tryRun);
                                             return;
                                         }
-                                        
-                                        wLoad[wi]++;
+                                        wFree[wi] = false;
                                         const wk = pool[wi];
                                         const h = e => {
                                             if (e.data.frameIndex === fid && (e.data.type === "result" || e.data.type === "error")) {
                                                 wk.removeEventListener("message", h);
-                                                wLoad[wi]--;
+                                                wFree[wi] = true;
                                                 resolve(e.data.type === "result" ? e.data.imageData : imageData);
                                                 if (pending.length > 0)
                                                     pending.shift()();
@@ -2729,7 +2718,7 @@ input[type=checkbox]:checked::after {
                                         wk.addEventListener("message", h);
                                         wk.cancel = () => {
                                             wk.removeEventListener("message", h);
-                                            wLoad[wi]--;
+                                            wFree[wi] = true;
                                             resolve(imageData);
                                         };
                                         const cl = new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);

@@ -468,43 +468,68 @@ const onnx_runner = {
         }
         if (block_callback)
             block_callback(0, all_blocks, true);
+        // GPU 파이프라이닝: 다음 타일 추론을 미리 시작하여 CPU 후처리 동안 GPU가 쉬지 않도록 함
+        const inferTile = async (tile_x, tile_alpha3) => {
+            let tile_y, tile_alpha_y = null;
+            if (has_alpha) {
+                if (tta_level > 0) tile_x = await this.tta_split(tile_x, BigInt(tta_level));
+                var output = await model.run({ x: tile_x });
+                tile_y = output.y;
+                if (tta_level > 0) tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
+                var alpha_output = await alpha_model.run({ x: tile_alpha3 });
+                tile_alpha_y = alpha_output.y;
+            } else {
+                if (tta_level > 0) tile_x = await this.tta_split(tile_x, BigInt(tta_level));
+                var tile_output = await model.run({ x: tile_x });
+                tile_y = tile_output.y;
+                if (tta_level > 0) tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
+            }
+            return { tile_y, tile_alpha_y };
+        };
+
+        // 첫 번째 타일 프리페치
+        let nextPromise = null;
+        {
+            const [i0, j0] = tiles[0];
+            let tile_x0 = this.crop_tensor(x, j0, i0, tile_size, tile_size);
+            let tile_alpha3_0 = has_alpha ? this.crop_tensor(alpha3, j0, i0, tile_size, tile_size) : null;
+            let sc0 = config.color_stability ? this.check_single_color(tile_x0, tile_alpha3_0, has_alpha) : null;
+            if (sc0 == null) {
+                nextPromise = inferTile(tile_x0, tile_alpha3_0);
+            } else {
+                nextPromise = Promise.resolve({ single_color: sc0 });
+            }
+        }
+
         for (var k = 0; k < tiles.length; ++k) {
             const [i, j, ii, jj, h_i, w_i] = tiles[k];
 
-            let tile_x = this.crop_tensor(x, j, i, tile_size, tile_size);
-            let tile_alpha3 = null;
-            if (has_alpha) {
-                tile_alpha3 = this.crop_tensor(alpha3, j, i, tile_size, tile_size);
-            }
-            let single_color = (config.color_stability ?
-                this.check_single_color(tile_x, tile_alpha3, has_alpha) : null);
-            if (single_color == null) {
-                if (has_alpha) {
-                    if (tta_level > 0) {
-                        tile_x = await this.tta_split(tile_x, BigInt(tta_level));
-                    }
-                    var output = await model.run({ x: tile_x });
-                    var tile_y = output.y;
-                    if (tta_level > 0) {
-                        tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
-                    }
-                    var alpha_output = await alpha_model.run({ x: tile_alpha3 });
-                    var tile_alpha_y = alpha_output.y;
+            // 현재 타일의 GPU 결과를 수령
+            const currentResult = await nextPromise;
+
+            // 다음 타일의 GPU 추론을 즉시 시작 (프리페치) — 현재 타일 CPU 후처리와 병렬 진행
+            if (k + 1 < tiles.length) {
+                const [ni, nj] = tiles[k + 1];
+                let next_tile_x = this.crop_tensor(x, nj, ni, tile_size, tile_size);
+                let next_tile_alpha3 = has_alpha ? this.crop_tensor(alpha3, nj, ni, tile_size, tile_size) : null;
+                let next_sc = config.color_stability ? this.check_single_color(next_tile_x, next_tile_alpha3, has_alpha) : null;
+                if (next_sc == null) {
+                    nextPromise = inferTile(next_tile_x, next_tile_alpha3);
                 } else {
-                    if (tta_level > 0) {
-                        tile_x = await this.tta_split(tile_x, BigInt(tta_level));
-                    }
-                    var tile_output = await model.run({ x: tile_x });
-                    var tile_y = tile_output.y;
-                    if (tta_level > 0) {
-                        tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
-                    }
+                    nextPromise = Promise.resolve({ single_color: next_sc });
                 }
-            } else {
-                // no need waifu2x, tile is single color image
-                var [tile_y, tile_alpha_y] = this.create_single_color_tensor(
-                    single_color, tile_size * config.scale - config.offset * 2);
             }
+
+            // CPU 후처리: SeamBlending + Canvas 기록
+            let tile_y, tile_alpha_y;
+            if (currentResult.single_color != null) {
+                [tile_y, tile_alpha_y] = this.create_single_color_tensor(
+                    currentResult.single_color, tile_size * config.scale - config.offset * 2);
+            } else {
+                tile_y = currentResult.tile_y;
+                tile_alpha_y = currentResult.tile_alpha_y;
+            }
+
             if (has_alpha) {
                 var rgb = seam_blending.update(tile_y, h_i, w_i);
                 var alpha = seam_blending_alpha.update(tile_alpha_y, h_i, w_i);
