@@ -2174,13 +2174,13 @@ input[type=checkbox]:checked::after {
                         */
 
                         if (upscaleChk.checked && upscaleItems.length > 0) {
-                            const upForm = createTagClass("div", "gifEditfrm");
+                            const upscaleFormContainer = createTagClass("div", "gifEditfrm");
 
-                            const close_btn2 = createTagClass("button", "close-btn", null, upForm);
+                            const close_btn2 = createTagClass("button", "close-btn", null, upscaleFormContainer);
                             setHTML(close_btn2, "&times;");
-                            close_btn2.addEventListener('click', () => upForm.remove());
-                            upForm.addEventListener('scroll', () => {
-                                close_btn2.style.top = (upForm.scrollTop + 16) + 'px';
+                            close_btn2.addEventListener('click', () => upscaleFormContainer.remove());
+                            upscaleFormContainer.addEventListener('scroll', () => {
+                                close_btn2.style.top = (upscaleFormContainer.scrollTop + 16) + 'px';
                             }
                             );
 
@@ -2371,7 +2371,7 @@ input[type=checkbox]:checked::after {
                                 }
                                 );
                                 item.info.itemtag = cell;
-                                append(upForm, cell);
+                                append(upscaleFormContainer, cell);
                             }
                             );
 
@@ -2396,14 +2396,14 @@ input[type=checkbox]:checked::after {
                                 }
                             }
                             );
-                            append(upForm, batchCell);
+                            append(upscaleFormContainer, batchCell);
 
                             // 옵션 패널 (아이템 아래)
-                            const upOpt = createTagClass("div", "");
-                            upOpt.style.cssText = "width:100%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;";
-                            const upOptT = createTagHTML("div", "🔍 업스케일 설정");
-                            upOptT.style.cssText = "font-weight:600;font-size:14px;margin-bottom:4px;";
-                            append(upOpt, upOptT);
+                            const upscaleOptionsPanel = createTagClass("div", "");
+                            upscaleOptionsPanel.style.cssText = "width:100%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;";
+                            const upscaleOptionsTitle = createTagHTML("div", "🔍 업스케일 설정");
+                            upscaleOptionsTitle.style.cssText = "font-weight:600;font-size:14px;margin-bottom:4px;";
+                            append(upscaleOptionsPanel, upscaleOptionsTitle);
 
                             const attachTooltip = (parentElem, tooltipText) => {
                                 const help = createTagClass("span", "", "?", parentElem);
@@ -2447,173 +2447,173 @@ input[type=checkbox]:checked::after {
                             };
                                 ;
 
-                            const upModelSel = mkRow(upOpt, "모델", [
+                            const modelSelect = mkRow(upscaleOptionsPanel, "모델", [
                                 ["swin_unet,art", "🎨 SwinUNet Art"],
                                 ["swin_unet,art_scan", "🎨 SwinUNet Art Scan"],
                                 ["swin_unet,photo", "📷 SwinUNet Photo"],
                                 ["cunet,art", "🎨 CUNet Art"]
                             ], "250px", "사용할 AI 모델:\n• SwinUNet Art: 2D 애니/일러스트에 최적화(권장)\n• SwinUNet Photo: 실사 사진, 풍경에 적합\n• CUNet Art: 구형 모델로 가벼우나 품질은 낮음");
 
-                            const upScaleSel = mkRow(upOpt, "스케일", [
+                            const scaleSelect = mkRow(upscaleOptionsPanel, "스케일", [
                                 ["scale2x", "2x"],
                                 ["scale4x", "4x"]
                             ], "250px", "이미지의 가로/세로를 몇 배로 확대할지 선택합니다. (4x 선택 시 픽셀 수는 16배로 증가하여 연산 시간이 크게 깁니다)");
 
-                            const upNoiseSel = mkRow(upOpt, "노이즈 제거", [
+                            const noiseSelect = mkRow(upscaleOptionsPanel, "노이즈 제거", [
                                 ["none", "없음"], ["noise0", "약"], ["noise1", "중"], ["noise2", "강"], ["noise3", "최강"]
                             ], "250px", "압축으로 인한 열화(JPG 노이즈 등)를 제거합니다.\n⚠️ 주의: 노이즈가 없는 깨끗한 원본 이미지에 '강~최강'을 적용하면 미세한 펜선이나 질감(디테일)까지 뭉개져서 수채화처럼 흐려지는 역효과가 납니다. 원본이 깨끗하다면 '없음'이나 '약'을 권장합니다.");
 
-                            const upTileSel = mkRow(upOpt, "타일", [
+                            const tileSelect = mkRow(upscaleOptionsPanel, "타일", [
                                 ["auto", "자동"], ["64", "64"], ["128", "128"], ["256", "256"], ["400", "400"], ["1024", "1024 (고사양)"]
                             ], "250px", "이미지를 바둑판처럼 잘라내어(타일) GPU에 보낼 크기를 결정합니다.\n타일이 너무 크면 GPU 메모리 초과(OOM)로 오류가 나고, 너무 작으면 처리 속도가 하락합니다. 알아서 최적을 찾아주는 '자동'을 권장합니다.");
 
-                            const upGifQualitySel = mkRow(upOpt, "GIF 퀄리티", [
+                            const gifQualitySelect = mkRow(upscaleOptionsPanel, "GIF 퀄리티", [
                                 ["1", "1 (최상)"], ["3", "3"], ["6", "6 (기본)"], ["10", "10"], ["20", "20 (최하)"]
                             ], "250px", "결과물 GIF의 압축 품질(색상 양자화 등)을 결정합니다.\n1에 가까울수록 색상 손실이 없는 고품질이 되지만 용량이 급격히 늘어납니다.");
 
-                            const upModeSel = mkRow(upOpt, "연산 모드", [
+                            const computeModeSelect = mkRow(upscaleOptionsPanel, "연산 모드", [
                                 ["webgpu", "GPU 가속 (빠름)"], ["wasm", "CPU 멀티코어 (안정적)"]
                             ], "250px", "• GPU 가속: 그래픽카드를 사용하여 매우 빠릅니다. (일부 브라우저에서 호환성 문제 발생 가능)\n• CPU: 속도는 느리지만 시스템을 가리지 않고 안정적으로 동작합니다.");
 
-                            const upTtaSel = mkRow(upOpt, "TTA (품질 극대화)", [
+                            const ttaSelect = mkRow(upscaleOptionsPanel, "TTA (품질 극대화)", [
                                 ["0", "0 (사용 안 함)"], ["2", "2 (약간 향상)"], ["4", "4 (높은 향상)"], ["8", "8 (최상/매우 느림)"]
                             ], "250px", "이미지를 다각도(회전/반전)로 여러 번 분석해 오차를 보정하고 병합하는 기술입니다.\n복잡한 선이나 패턴에서 효과가 매우 뛰어나지만, 레벨(2~8배)만큼 시간이 정직하게 배수로 늘어나므로 시간적 여유가 있을 때만 사용하세요.");
                             // 기본값: CUNet Art, 2x, 최강, 256
-                            upModelSel.value = "cunet,art";
-                            upScaleSel.value = "scale2x";
-                            upNoiseSel.value = "noise1";
-                            upTileSel.value = "auto";
-                            upGifQualitySel.value = "1";
-                            upModeSel.value = navigator.gpu ? "webgpu" : "wasm";
-                            upTtaSel.value = "0";
+                            modelSelect.value = "cunet,art";
+                            scaleSelect.value = "scale2x";
+                            noiseSelect.value = "noise1";
+                            tileSelect.value = "auto";
+                            gifQualitySelect.value = "1";
+                            computeModeSelect.value = navigator.gpu ? "webgpu" : "wasm";
+                            ttaSelect.value = "0";
 
                             // CUNet은 scale4x 미지원 → 동적 제한
-                            const scale4xOpt = upScaleSel.querySelector('option[value="scale4x"]');
+                            const scale4xOpt = scaleSelect.querySelector('option[value="scale4x"]');
                             const syncScaleLimit = () => {
-                                const isCunet = upModelSel.value.startsWith("cunet");
+                                const isCunet = modelSelect.value.startsWith("cunet");
                                 if (scale4xOpt) {
                                     scale4xOpt.disabled = isCunet;
-                                    if (isCunet && upScaleSel.value === "scale4x") upScaleSel.value = "scale2x";
+                                    if (isCunet && scaleSelect.value === "scale4x") scaleSelect.value = "scale2x";
                                 }
                             };
-                            upModelSel.addEventListener("change", syncScaleLimit);
+                            modelSelect.addEventListener("change", syncScaleLimit);
                             syncScaleLimit();
 
-                            const upAlphaRow = createTagClass("div", "selLbl");
-                            upAlphaRow.style.minHeight = "36px";
-                            const alphaLblWrap = createTagClass("div", "", null, upAlphaRow);
+                            const alphaRowContainer = createTagClass("div", "selLbl");
+                            alphaRowContainer.style.minHeight = "36px";
+                            const alphaLblWrap = createTagClass("div", "", null, alphaRowContainer);
                             alphaLblWrap.style.cssText = "display:flex;align-items:center;gap:4px;";
                             createTagClass("span", "mainfrmSpan", "알파 채널 유지", alphaLblWrap);
                             attachTooltip(alphaLblWrap, "이미지의 투명한 부분(배경)을 유지할지 결정합니다.\n체크 해제 시 투명한 배경이 검은색으로 채워지며, 연산량이 약간 줄어듭니다.");
 
 
-                            const upAlphaRight = createTagClass("div", "", null, upAlphaRow);
+                            const upAlphaRight = createTagClass("div", "", null, alphaRowContainer);
                             upAlphaRight.style.cssText = "display:flex;align-items:center;gap:12px;justify-content:flex-end;width:250px;";
 
 
 
-                            const upAlphaChk = createControl("checkbox", upAlphaRight);
-                            upAlphaChk.style.cssText = "width:18px;height:18px;cursor:pointer;margin:0;";
+                            const alphaCheckbox = createControl("checkbox", upAlphaRight);
+                            alphaCheckbox.style.cssText = "width:18px;height:18px;cursor:pointer;margin:0;";
 
-                            upAlphaChk.addEventListener("change", () => {
+                            alphaCheckbox.addEventListener("change", () => {
                                 saveUpOpts();
                             });
-                            append(upOpt, upAlphaRow);
+                            append(upscaleOptionsPanel, alphaRowContainer);
 
                             // localStorage 저장/복원
                             const UP_OPTS_KEY = "arcacon_upscale_opts";
                             const saveUpOpts = () => {
-                                try { localStorage.setItem(UP_OPTS_KEY, JSON.stringify({ model: upModelSel.value, scale: upScaleSel.value, noise: upNoiseSel.value, tile: upTileSel.value, gifQuality: upGifQualitySel.value, mode: upModeSel.value, tta: upTtaSel.value, alpha: upAlphaChk.checked })); } catch (e) { }
+                                try { localStorage.setItem(UP_OPTS_KEY, JSON.stringify({ model: modelSelect.value, scale: scaleSelect.value, noise: noiseSelect.value, tile: tileSelect.value, gifQuality: gifQualitySelect.value, mode: computeModeSelect.value, tta: ttaSelect.value, alpha: alphaCheckbox.checked })); } catch (e) { }
                             };
                             try {
                                 const saved = JSON.parse(localStorage.getItem(UP_OPTS_KEY));
                                 if (saved) {
-                                    if (saved.model) upModelSel.value = saved.model;
-                                    if (saved.scale) upScaleSel.value = saved.scale;
-                                    if (saved.noise) upNoiseSel.value = saved.noise;
-                                    if (saved.tile) upTileSel.value = saved.tile;
-                                    if (saved.gifQuality) upGifQualitySel.value = saved.gifQuality;
-                                    if (saved.mode) upModeSel.value = saved.mode;
-                                    if (saved.tta) upTtaSel.value = saved.tta;
-                                    if (saved.alpha !== undefined) upAlphaChk.checked = saved.alpha;
+                                    if (saved.model) modelSelect.value = saved.model;
+                                    if (saved.scale) scaleSelect.value = saved.scale;
+                                    if (saved.noise) noiseSelect.value = saved.noise;
+                                    if (saved.tile) tileSelect.value = saved.tile;
+                                    if (saved.gifQuality) gifQualitySelect.value = saved.gifQuality;
+                                    if (saved.mode) computeModeSelect.value = saved.mode;
+                                    if (saved.tta) ttaSelect.value = saved.tta;
+                                    if (saved.alpha !== undefined) alphaCheckbox.checked = saved.alpha;
 
                                 }
                             } catch (e) { }
-                            [upModelSel, upScaleSel, upNoiseSel, upTileSel, upGifQualitySel, upModeSel, upTtaSel].forEach(s => s.addEventListener("change", saveUpOpts));
+                            [modelSelect, scaleSelect, noiseSelect, tileSelect, gifQualitySelect, computeModeSelect, ttaSelect].forEach(s => s.addEventListener("change", saveUpOpts));
 
 
                             // 프로그레스
-                            const upPW = createTagClass("div", "");
-                            upPW.style.cssText = "width:100%;background:#e5e7eb;border-radius:8px;height:24px;position:relative;overflow:hidden;";
+                            const progressBarWrapper = createTagClass("div", "");
+                            progressBarWrapper.style.cssText = "width:100%;background:#e5e7eb;border-radius:8px;height:24px;position:relative;overflow:hidden;";
                             
-                            const upPT_bg = createTagClass("span", "");
-                            upPT_bg.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;font-weight:600;color:#374151;white-space:nowrap;z-index:1;";
-                            upPT_bg.textContent = "대기 중";
+                            const progressTextBackground = createTagClass("span", "");
+                            progressTextBackground.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;font-weight:600;color:#374151;white-space:nowrap;z-index:1;";
+                            progressTextBackground.textContent = "대기 중";
 
-                            const upPB = createTagClass("div", "");
-                            upPB.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#10b981,#059669);z-index:2;clip-path:inset(0 100% 0 0);transition:clip-path 0.3s;";
+                            const progressBarFill = createTagClass("div", "");
+                            progressBarFill.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#10b981,#059669);z-index:2;clip-path:inset(0 100% 0 0);transition:clip-path 0.3s;";
                             
-                            const upPT_fg = createTagClass("span", "");
-                            upPT_fg.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;font-weight:600;color:white;white-space:nowrap;";
-                            upPT_fg.textContent = "대기 중";
+                            const progressTextForeground = createTagClass("span", "");
+                            progressTextForeground.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;font-weight:600;color:white;white-space:nowrap;";
+                            progressTextForeground.textContent = "대기 중";
 
-                            append(upPB, upPT_fg);
-                            append(upPW, upPT_bg);
-                            append(upPW, upPB);
-                            append(upOpt, upPW);
+                            append(progressBarFill, progressTextForeground);
+                            append(progressBarWrapper, progressTextBackground);
+                            append(progressBarWrapper, progressBarFill);
+                            append(upscaleOptionsPanel, progressBarWrapper);
 
-                            const upBtn = createTagClass("button", "mainfrmBtn1", "🔍 업스케일 시작");
-                            upBtn.style.cssText = "width:100%;background:linear-gradient(135deg,#8b5cf6,#6d28d9);";
-                            append(upOpt, upBtn);
-                            append(upForm, upOpt);
-                            append(document.body, upForm);
+                            const upscaleStartButton = createTagClass("button", "mainfrmBtn1", "🔍 업스케일 시작");
+                            upscaleStartButton.style.cssText = "width:100%;background:linear-gradient(135deg,#8b5cf6,#6d28d9);";
+                            append(upscaleOptionsPanel, upscaleStartButton);
+                            append(upscaleFormContainer, upscaleOptionsPanel);
+                            append(document.body, upscaleFormContainer);
 
-                            let upCancelled = false;
-                            let triggerStopCleanup = null;
-                            upBtn.addEventListener("click", async () => {
+                            let isUpscaleCancelled = false;
+                            let cancelUpscaleTasks = null;
+                            upscaleStartButton.addEventListener("click", async () => {
                                 // 진행 중이면 정지
-                                if (upBtn.dataset.running === "1") {
-                                    upCancelled = true;
-                                    if (triggerStopCleanup) triggerStopCleanup();
+                                if (upscaleStartButton.dataset.running === "1") {
+                                    isUpscaleCancelled = true;
+                                    if (cancelUpscaleTasks) cancelUpscaleTasks();
 
-                                    upBtn.dataset.running = "0";
-                                    upBtn.textContent = "🔍 업스케일 시작";
-                                    upPT_bg.textContent = upPT_fg.textContent = "⏸️ 정지됨 (작업 취소 및 초기화 완료)";
-                                    upPB.style.clipPath = "inset(0 100% 0 0)";
+                                    upscaleStartButton.dataset.running = "0";
+                                    upscaleStartButton.textContent = "🔍 업스케일 시작";
+                                    progressTextBackground.textContent = progressTextForeground.textContent = "⏸️ 정지됨 (작업 취소 및 초기화 완료)";
+                                    progressBarFill.style.clipPath = "inset(0 100% 0 0)";
                                     return;
                                 }
-                                upCancelled = false;
-                                upBtn.dataset.running = "1";
-                                upBtn.textContent = "⏹ 정지";
-                                upPB.style.clipPath = "inset(0 100% 0 0)";
-                                upPT_bg.textContent = upPT_fg.textContent = "준비 중...";
-                                const mBase = upModelSel.value
-                                    , sVal = upScaleSel.value
-                                    , nVal = upNoiseSel.value;
-                                const tile = upTileSel.value === "auto" ? "auto" : parseInt(upTileSel.value)
-                                    , alpha = upAlphaChk.checked
-                                    , tta_level = parseInt(upTtaSel.value);
-                                const scale = sVal === "scale4x" ? 4 : 2;
-                                const model = mBase + "," + (nVal !== "none" ? nVal + "_" : "") + sVal;
-                                const alphaM = alpha ? mBase + "," + sVal : null;
+                                isUpscaleCancelled = false;
+                                upscaleStartButton.dataset.running = "1";
+                                upscaleStartButton.textContent = "⏹ 정지";
+                                progressBarFill.style.clipPath = "inset(0 100% 0 0)";
+                                progressTextBackground.textContent = progressTextForeground.textContent = "준비 중...";
+                                const baseModelName = modelSelect.value
+                                    , scaleValue = scaleSelect.value
+                                    , noiseValue = noiseSelect.value;
+                                const tile = tileSelect.value === "auto" ? "auto" : parseInt(tileSelect.value)
+                                    , alpha = alphaCheckbox.checked
+                                    , tta_level = parseInt(ttaSelect.value);
+                                const scale = scaleValue === "scale4x" ? 4 : 2;
+                                const model = baseModelName + "," + (noiseValue !== "none" ? noiseValue + "_" : "") + scaleValue;
+                                const alphaModelConfig = alpha ? baseModelName + "," + scaleValue : null;
 
                                 if (!window.__waifu2xWorkers) {
-                                    upPT_bg.textContent = upPT_fg.textContent = "waifu2x 로딩 중...";
+                                    progressTextBackground.textContent = progressTextForeground.textContent = "waifu2x 로딩 중...";
                                     try {
-                                        const epMode = upModeSel.value;
+                                        const epMode = computeModeSelect.value;
                                         const ortUrl = ONNX_RUNTIME_URLS[epMode] || ONNX_RUNTIME_URLS.wasm;
-                                        const [a, b] = await Promise.all([fetch(ortUrl), fetch(WAIFU2X_WORKER_URL)]);
-                                        const code = (await a.text()) + "\n;\n" + (await b.text());
-                                        const bUrl = createURL(new Blob([code], {
+                                        const [ortResponse, workerResponse] = await Promise.all([fetch(ortUrl), fetch(WAIFU2X_WORKER_URL)]);
+                                        const code = (await ortResponse.text()) + "\n;\n" + (await workerResponse.text());
+                                        const workerBlobUrl = createURL(new Blob([code], {
                                             type: 'application/javascript'
                                         }));
 
-                                        const n = epMode === "webgpu" ? 1 : (navigator.hardwareConcurrency || 4)
-                                            , ws = []
-                                            , ps = [];
-                                        for (let i = 0; i < n; i++) {
-                                            const w = new Worker(bUrl);
-                                            ps.push(new Promise(r => {
+                                        const workerCount = epMode === "webgpu" ? 1 : (navigator.hardwareConcurrency || 4)
+                                            , workerInstances = []
+                                            , initPromises = [];
+                                        for (let i = 0; i < workerCount; i++) {
+                                            const w = new Worker(workerBlobUrl);
+                                            initPromises.push(new Promise(r => {
                                                 w.onmessage = e => {
                                                     if (e.data.type === "ready")
                                                         r();
@@ -2626,14 +2626,14 @@ input[type=checkbox]:checked::after {
                                                 wasmPaths: ONNX_CDN_BASE,
                                                 ep: epMode
                                             });
-                                            ws.push(w);
+                                            workerInstances.push(w);
                                         }
-                                        await Promise.all(ps);
-                                        window.__waifu2xWorkers = ws;
+                                        await Promise.all(initPromises);
+                                        window.__waifu2xWorkers = workerInstances;
                                     } catch (e) {
-                                        upPT_bg.textContent = upPT_fg.textContent = "로딩 실패: " + e.message;
-                                        upBtn.dataset.running = "0";
-                                        upBtn.textContent = "🔍 업스케일 시작";
+                                        progressTextBackground.textContent = progressTextForeground.textContent = "로딩 실패: " + e.message;
+                                        upscaleStartButton.dataset.running = "0";
+                                        upscaleStartButton.textContent = "🔍 업스케일 시작";
                                         return;
                                     }
                                 }
@@ -2642,15 +2642,15 @@ input[type=checkbox]:checked::after {
                                 const total = upscaleItems.length;
                                 const prog = (extra) => {
                                     const p = Math.round(done / total * 100);
-                                    upPB.style.clipPath = `inset(0 ${100 - p}% 0 0)`;
-                                    upPT_bg.textContent = upPT_fg.textContent = `${done}/${total} (${p}%)` + (extra || "");
+                                    progressBarFill.style.clipPath = `inset(0 ${100 - p}% 0 0)`;
+                                    progressTextBackground.textContent = progressTextForeground.textContent = `${done}/${total} (${p}%)` + (extra || "");
                                 };
 
                                 // 동적 워커 디스패치: 유휴 워커에 즉시 작업 할당
-                                const wFree = pool.map(() => true);
+                                const idleWorkers = pool.map(() => true);
                                 const pending = [];
 
-                                triggerStopCleanup = () => {
+                                cancelUpscaleTasks = () => {
                                     while (pending.length > 0) pending.shift()();
                                     if (window.__waifu2xWorkers) {
                                         window.__waifu2xWorkers.forEach(w => {
@@ -2661,48 +2661,48 @@ input[type=checkbox]:checked::after {
                                     }
                                 };
 
-                                const dispatch = (imageData, fid, useAlpha = alpha) => new Promise(resolve => {
+                                const dispatch = (imageData, frameIndex, useAlpha = alpha) => new Promise(resolve => {
                                     const tryRun = () => {
-                                        if (upCancelled) {
+                                        if (isUpscaleCancelled) {
                                             resolve(imageData);
                                             return;
                                         }
-                                        const wi = wFree.indexOf(true);
-                                        if (wi === -1) {
+                                        const idleWorkerIndex = idleWorkers.indexOf(true);
+                                        if (idleWorkerIndex === -1) {
                                             pending.push(tryRun);
                                             return;
                                         }
-                                        wFree[wi] = false;
-                                        const wk = pool[wi];
-                                        const h = e => {
-                                            if (e.data.frameIndex === fid && (e.data.type === "result" || e.data.type === "error")) {
-                                                wk.removeEventListener("message", h);
-                                                wFree[wi] = true;
+                                        idleWorkers[idleWorkerIndex] = false;
+                                        const activeWorker = pool[idleWorkerIndex];
+                                        const messageHandler = e => {
+                                            if (e.data.frameIndex === frameIndex && (e.data.type === "result" || e.data.type === "error")) {
+                                                activeWorker.removeEventListener("message", messageHandler);
+                                                idleWorkers[idleWorkerIndex] = true;
                                                 resolve(e.data.type === "result" ? e.data.imageData : imageData);
                                                 if (pending.length > 0)
                                                     pending.shift()();
                                             }
                                         };
-                                        wk.addEventListener("message", h);
-                                        wk.cancel = () => {
-                                            wk.removeEventListener("message", h);
-                                            wFree[wi] = true;
+                                        activeWorker.addEventListener("message", messageHandler);
+                                        activeWorker.cancel = () => {
+                                            activeWorker.removeEventListener("message", messageHandler);
+                                            idleWorkers[idleWorkerIndex] = true;
                                             resolve(imageData);
                                         };
-                                        const cl = new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);
-                                        wk.postMessage({
+                                        const clonedImageData = new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);
+                                        activeWorker.postMessage({
                                             type: "process",
-                                            frameIndex: fid,
-                                            imageData: cl,
+                                            frameIndex: frameIndex,
+                                            imageData: clonedImageData,
                                             options: {
                                                 model,
                                                 tile,
                                                 tile_random: false,
                                                 tta_level: tta_level,
                                                 alpha_enabled: useAlpha,
-                                                alpha_config: useAlpha ? alphaM : null
+                                                alpha_config: useAlpha ? alphaModelConfig : null
                                             }
-                                        }, [cl.data.buffer]);
+                                        }, [clonedImageData.data.buffer]);
                                     }
                                         ;
                                     tryRun();
@@ -2710,41 +2710,41 @@ input[type=checkbox]:checked::after {
                                 );
 
                                 const doStatic = async (item, idx) => {
-                                    if (upCancelled)
+                                    if (isUpscaleCancelled)
                                         return;
-                                    const im = new Image();
+                                    const imageElement = new Image();
                                     let loaded = false;
                                     await new Promise(r => {
-                                        im.onload = () => { loaded = true; r(); };
-                                        im.onerror = r;
-                                        im.src = item.url;
+                                        imageElement.onload = () => { loaded = true; r(); };
+                                        imageElement.onerror = r;
+                                        imageElement.src = item.url;
                                     }
                                     );
-                                    if (!loaded || !im.naturalWidth) { done++; prog(); return; }
-                                    const c = document.createElement("canvas");
-                                    c.width = im.naturalWidth;
-                                    c.height = im.naturalHeight;
-                                    const cx = c.getContext("2d", {
+                                    if (!loaded || !imageElement.naturalWidth) { done++; prog(); return; }
+                                    const sourceCanvas = document.createElement("canvas");
+                                    sourceCanvas.width = imageElement.naturalWidth;
+                                    sourceCanvas.height = imageElement.naturalHeight;
+                                    const sourceContext = sourceCanvas.getContext("2d", {
                                         willReadFrequently: true
                                     });
-                                    cx.drawImage(im, 0, 0);
-                                    const d = cx.getImageData(0, 0, c.width, c.height);
-                                    const fid = idx * 10000;
-                                    const res = await dispatch(d, fid);
-                                    const oc = document.createElement("canvas");
-                                    oc.width = res.width;
-                                    oc.height = res.height;
-                                    oc.getContext("2d").putImageData(res, 0, 0);
-                                    const bl = await new Promise(r => oc.toBlob(r, "image/png"));
-                                    if (bl) {
-                                        const nn = item.name.replace(/\.[^.]+$/, ".png");
+                                    sourceContext.drawImage(imageElement, 0, 0);
+                                    const sourceImageData = sourceContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+                                    const frameIndex = idx * 10000;
+                                    const resultImageData = await dispatch(sourceImageData, frameIndex);
+                                    const outputCanvas = document.createElement("canvas");
+                                    outputCanvas.width = resultImageData.width;
+                                    outputCanvas.height = resultImageData.height;
+                                    outputCanvas.getContext("2d").putImageData(resultImageData, 0, 0);
+                                    const resultBlob = await new Promise(r => outputCanvas.toBlob(r, "image/png"));
+                                    if (resultBlob) {
+                                        const newFileName = item.name.replace(/\.[^.]+$/, ".png");
                                         jsZip.remove(item.name);
-                                        jsZip.file(nn, bl);
-                                        item.name = nn;
-                                        item.tmpBlob = bl;
-                                        item.blob = bl;
-                                        item.url = createURL(bl);
-                                        upSetImgBlob(idx, bl, "🔍 ");
+                                        jsZip.file(newFileName, resultBlob);
+                                        item.name = newFileName;
+                                        item.tmpBlob = resultBlob;
+                                        item.blob = resultBlob;
+                                        item.url = createURL(resultBlob);
+                                        upSetImgBlob(idx, resultBlob, "🔍 ");
                                         item.info.itemtag.style.borderColor = "#8b5cf6";
                                     }
                                     done++;
@@ -2752,48 +2752,48 @@ input[type=checkbox]:checked::after {
                                 }
                                     ;
                                 const doGif = async (item, idx) => {
-                                    if (upCancelled)
+                                    if (isUpscaleCancelled)
                                         return;
-                                    const ab = await item.tmpBlob.arrayBuffer();
-                                    const fOff = idx * 10000;
-                                    const bl = await new Promise(resolve => {
-                                        const eg = GIFS();
-                                        eg.dec.load({
+                                    const arrayBuffer = await item.tmpBlob.arrayBuffer();
+                                    const frameOffset = idx * 10000;
+                                    const resultBlob = await new Promise(resolve => {
+                                        const gifEngine = GIFS();
+                                        gifEngine.dec.load({
                                             files: [],
-                                            buffers: [ab],
-                                            oncomplete: async F => {
-                                                if (!F || !F[0]) {
+                                            buffers: [arrayBuffer],
+                                            oncomplete: async gifFiles => {
+                                                if (!gifFiles || !gifFiles[0]) {
                                                     resolve(null);
                                                     return;
                                                 }
-                                                const g = F[0]
-                                                    , fr = g.frames
-                                                    , oW = g.screenDescriptor.width
-                                                    , oH = g.screenDescriptor.height;
-                                                const fl = fr.map((f, i) => ({
+                                                const parsedGif = gifFiles[0]
+                                                    , rawFrames = parsedGif.frames
+                                                    , originalWidth = parsedGif.screenDescriptor.width
+                                                    , originalHeight = parsedGif.screenDescriptor.height;
+                                                const frameList = rawFrames.map((f, i) => ({
                                                     index: i,
                                                     imageData: (f.context || f.canvas.getContext("2d")).getImageData(0, 0, f.canvas.width, f.canvas.height),
                                                     delay: f.graphicsControl ? f.graphicsControl.delay : 5,
                                                     disposal: f.graphicsControl ? f.graphicsControl.disposal : 0,
                                                     hasTransp: f.graphicsControl ? f.graphicsControl.transparencyIndex !== undefined && f.graphicsControl.transparencyIndex !== false : false
                                                 }));
-                                                const hasAnyTransp = fl.some(fd => fd.hasTransp || (() => {
-                                                    const d = fd.imageData.data;
+                                                const hasAnyTransp = frameList.some(frameData => frameData.hasTransp || (() => {
+                                                    const d = frameData.imageData.data;
                                                     for (let i = 3; i < d.length; i += 4)
                                                         if (d[i] < 128)
                                                             return true;
                                                     return false;
                                                 }
                                                 )());
-                                                const uf = new Array(fl.length);
-                                                let fDone = 0;
+                                                const upscaledFrames = new Array(frameList.length);
+                                                let framesDone = 0;
                                                 let nextEncodeIndex = 0;
 
-                                                const enc = eg.enc();
-                                                enc.setRepeat(0);
-                                                enc.setQuality(parseInt(upGifQualitySel.value) || 6);
-                                                enc.setGifSize(oW * scale, oH * scale);
-                                                enc.start();
+                                                const gifEncoder = gifEngine.enc();
+                                                gifEncoder.setRepeat(0);
+                                                gifEncoder.setQuality(parseInt(gifQualitySelect.value) || 6);
+                                                gifEncoder.setGifSize(originalWidth * scale, originalHeight * scale);
+                                                gifEncoder.start();
 
                                                 let transpKey = null, tR = 0, tG = 0, tB = 0;
                                                 if (hasAnyTransp && alpha) {
@@ -2807,8 +2807,8 @@ input[type=checkbox]:checked::after {
                                                         { r: 255, g: 255, b: 255, minD: Infinity } // 화이트
                                                     ];
                                                     const seenColors = new Set();
-                                                    for (let fd of fl) {
-                                                        const d = fd.imageData.data;
+                                                    for (let frameData of frameList) {
+                                                        const d = frameData.imageData.data;
                                                         for (let i = 0; i < d.length; i += 4) {
                                                             if (d[i + 3] < 128) continue;
                                                             const R = d[i], G = d[i + 1], B = d[i + 2];
@@ -2830,16 +2830,16 @@ input[type=checkbox]:checked::after {
                                                     transpKey = (tR << 16) | (tG << 8) | tB;
                                                 }
 
-                                                await Promise.all(fl.map(async (fd) => {
-                                                    const gfid = fOff + fd.index;
-                                                    const upFrame = await dispatch(fd.imageData, gfid);
-                                                    uf[fd.index] = upFrame;
-                                                    fDone++;
-                                                    prog(` │ 프레임 ${fDone}/${fl.length}`);
+                                                await Promise.all(frameList.map(async (frameData) => {
+                                                    const globalFrameIndex = frameOffset + frameData.index;
+                                                    const upFrame = await dispatch(frameData.imageData, globalFrameIndex);
+                                                    upscaledFrames[frameData.index] = upFrame;
+                                                    framesDone++;
+                                                    prog(` │ 프레임 ${framesDone}/${frameList.length}`);
 
                                                     // 준비된 프레임들을 순서대로 즉시 인코딩하여 메모리 최적화
-                                                    while (nextEncodeIndex < fl.length && uf[nextEncodeIndex]) {
-                                                        const frame = uf[nextEncodeIndex];
+                                                    while (nextEncodeIndex < frameList.length && upscaledFrames[nextEncodeIndex]) {
+                                                        const frame = upscaledFrames[nextEncodeIndex];
                                                         if (hasAnyTransp && alpha) {
                                                             const d = frame.data;
                                                             let hasTranspPixel = false;
@@ -2852,33 +2852,33 @@ input[type=checkbox]:checked::after {
                                                                     hasTranspPixel = true;
                                                                 }
                                                             }
-                                                            enc.setTransparent(hasTranspPixel ? transpKey : null);
+                                                            gifEncoder.setTransparent(hasTranspPixel ? transpKey : null);
                                                         } else {
-                                                            enc.setTransparent(null);
+                                                            gifEncoder.setTransparent(null);
                                                         }
-                                                        enc.setDelay((fl[nextEncodeIndex].delay || 5) * 10);
-                                                        enc.setDispose(fl[nextEncodeIndex].disposal);
-                                                        enc.addFrame(frame, true, false);
+                                                        gifEncoder.setDelay((frameList[nextEncodeIndex].delay || 5) * 10);
+                                                        gifEncoder.setDispose(frameList[nextEncodeIndex].disposal);
+                                                        gifEncoder.addFrame(frame, true, false);
 
                                                         // 가비지 컬렉터가 수거하도록 참조 해제 (대용량 메모리 최적화)
-                                                        uf[nextEncodeIndex] = null;
+                                                        upscaledFrames[nextEncodeIndex] = null;
                                                         nextEncodeIndex++;
                                                     }
                                                 }));
 
-                                                enc.finish();
-                                                resolve(enc.toBlob());
+                                                gifEncoder.finish();
+                                                resolve(gifEncoder.toBlob());
                                             }
                                             ,
                                             onerror: () => resolve(null)
                                         });
                                     }
                                     );
-                                    if (bl) {
-                                        item.tmpBlob = bl;
-                                        item.blob = bl;
-                                        jsZip.file(item.name, bl);
-                                        upSetImgBlob(idx, bl, "🔍 ");
+                                    if (resultBlob) {
+                                        item.tmpBlob = resultBlob;
+                                        item.blob = resultBlob;
+                                        jsZip.file(item.name, resultBlob);
+                                        upSetImgBlob(idx, resultBlob, "🔍 ");
                                         item.info.itemtag.style.borderColor = "#8b5cf6";
                                     }
                                     done++;
@@ -2892,7 +2892,7 @@ input[type=checkbox]:checked::after {
                                     idx: i
                                 }));
                                 const run = async () => {
-                                    while (q.length > 0 && !upCancelled) {
+                                    while (q.length > 0 && !isUpscaleCancelled) {
                                         const { item, idx } = q.shift();
                                         if (item.extension === "gif")
                                             await doGif(item, idx);
@@ -2905,13 +2905,13 @@ input[type=checkbox]:checked::after {
                                     length: Math.min(pool.length, q.length)
                                 }, () => run()));
 
-                                upBtn.dataset.running = "0";
-                                if (!upCancelled) {
-                                    upPB.style.clipPath = "inset(0 0% 0 0)";
-                                    upPT_bg.textContent = upPT_fg.textContent = "✅ 업스케일 완료!";
+                                upscaleStartButton.dataset.running = "0";
+                                if (!isUpscaleCancelled) {
+                                    progressBarFill.style.clipPath = "inset(0 0% 0 0)";
+                                    progressTextBackground.textContent = progressTextForeground.textContent = "✅ 업스케일 완료!";
                                     setStatus("업스케일 완료!");
                                 }
-                                upBtn.textContent = "🔍 업스케일 시작";
+                                upscaleStartButton.textContent = "🔍 업스케일 시작";
                             }
                             );
 
