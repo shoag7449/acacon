@@ -2432,7 +2432,7 @@ input[type=checkbox]:checked::after {
                             upScaleSel.value = "scale2x";
                             upNoiseSel.value = "noise3";
                             upTileSel.value = "256";
-                            upGifQualitySel.value = "6";
+                            upGifQualitySel.value = "1";
                             upModeSel.value = navigator.gpu ? "webgpu" : "wasm";
 
                             // CUNet은 scale4x 미지원 → 동적 제한
