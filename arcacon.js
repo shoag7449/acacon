@@ -2598,13 +2598,17 @@ input[type=checkbox]:checked::after {
                             append(document.body, upForm);
 
                             let upCancelled = false;
+                            let triggerStopCleanup = null;
                             upBtn.addEventListener("click", async () => {
                                 // 진행 중이면 정지
                                 if (upBtn.dataset.running === "1") {
                                     upCancelled = true;
+                                    if (triggerStopCleanup) triggerStopCleanup();
+                                    
                                     upBtn.dataset.running = "0";
                                     upBtn.textContent = "🔍 업스케일 시작";
-                                    upPT.textContent = "⏸️ 정지됨";
+                                    upPT.textContent = "⏸️ 정지됨 (작업 취소 및 초기화 완료)";
+                                    upPB.style.width = "0%";
                                     return;
                                 }
                                 upCancelled = false;
@@ -2672,6 +2676,18 @@ input[type=checkbox]:checked::after {
                                 // 동적 워커 디스패치: 유휴 워커에 즉시 작업 할당
                                 const wFree = pool.map(() => true);
                                 const pending = [];
+                                
+                                triggerStopCleanup = () => {
+                                    while (pending.length > 0) pending.shift()();
+                                    if (window.__waifu2xWorkers) {
+                                        window.__waifu2xWorkers.forEach(w => {
+                                            if (w.cancel) w.cancel();
+                                            w.terminate();
+                                        });
+                                        window.__waifu2xWorkers = null;
+                                    }
+                                };
+                                
                                 const dispatch = (imageData, fid, useAlpha = alpha) => new Promise(resolve => {
                                     const tryRun = () => {
                                         if (upCancelled) {
@@ -2693,9 +2709,13 @@ input[type=checkbox]:checked::after {
                                                 if (pending.length > 0)
                                                     pending.shift()();
                                             }
-                                        }
-                                            ;
+                                        };
                                         wk.addEventListener("message", h);
+                                        wk.cancel = () => {
+                                            wk.removeEventListener("message", h);
+                                            wFree[wi] = true;
+                                            resolve(imageData);
+                                        };
                                         const cl = new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);
                                         wk.postMessage({
                                             type: "process",
