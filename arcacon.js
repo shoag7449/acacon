@@ -2423,12 +2423,14 @@ input[type=checkbox]:checked::after {
                             const upNoiseSel = mkRow(upOpt, "노이즈 제거", [["none", "없음"], ["noise0", "약"], ["noise1", "중"], ["noise2", "강"], ["noise3", "최강"]], "200px");
                             const upTileSel = mkRow(upOpt, "타일", [["64", "64"], ["128", "128"], ["256", "256"]], "200px");
                             const upGifQualitySel = mkRow(upOpt, "GIF 퀄리티", [["1", "1 (최상)"], ["3", "3"], ["6", "6 (기본)"], ["10", "10"], ["20", "20 (최하)"]], "200px");
-                            // 기본값: CUNet Art, 2x, 최강, 64
+                            const upModeSel = mkRow(upOpt, "연산 모드", [["webgpu", "GPU 가속 (빠름)"], ["wasm", "CPU 멀티코어 (안정적)"]], "200px");
+                            // 기본값: CUNet Art, 2x, 최강, 256
                             upModelSel.value = "cunet,art";
                             upScaleSel.value = "scale2x";
                             upNoiseSel.value = "noise3";
                             upTileSel.value = "256";
                             upGifQualitySel.value = "6";
+                            upModeSel.value = navigator.gpu ? "webgpu" : "wasm";
 
                             // CUNet은 scale4x 미지원 → 동적 제한
                             const scale4xOpt = upScaleSel.querySelector('option[value="scale4x"]');
@@ -2554,7 +2556,7 @@ input[type=checkbox]:checked::after {
                             // localStorage 저장/복원
                             const UP_OPTS_KEY = "arcacon_upscale_opts";
                             const saveUpOpts = () => {
-                                try { localStorage.setItem(UP_OPTS_KEY, JSON.stringify({ model: upModelSel.value, scale: upScaleSel.value, noise: upNoiseSel.value, tile: upTileSel.value, gifQuality: upGifQualitySel.value, alpha: upAlphaChk.checked, transpColor: upTranspColor.value })); } catch (e) { }
+                                try { localStorage.setItem(UP_OPTS_KEY, JSON.stringify({ model: upModelSel.value, scale: upScaleSel.value, noise: upNoiseSel.value, tile: upTileSel.value, gifQuality: upGifQualitySel.value, mode: upModeSel.value, alpha: upAlphaChk.checked, transpColor: upTranspColor.value })); } catch (e) { }
                             };
                             try {
                                 const saved = JSON.parse(localStorage.getItem(UP_OPTS_KEY));
@@ -2564,6 +2566,7 @@ input[type=checkbox]:checked::after {
                                     if (saved.noise) upNoiseSel.value = saved.noise;
                                     if (saved.tile) upTileSel.value = saved.tile;
                                     if (saved.gifQuality) upGifQualitySel.value = saved.gifQuality;
+                                    if (saved.mode) upModeSel.value = saved.mode;
                                     if (saved.alpha !== undefined) upAlphaChk.checked = saved.alpha;
                                     if (saved.transpColor) upTranspColor.value = saved.transpColor;
                                 }
@@ -2573,7 +2576,7 @@ input[type=checkbox]:checked::after {
                             } else {
                                 upTranspColorWrap.style.display = "flex";
                             }
-                            [upModelSel, upScaleSel, upNoiseSel, upTileSel, upGifQualitySel].forEach(s => s.addEventListener("change", saveUpOpts));
+                            [upModelSel, upScaleSel, upNoiseSel, upTileSel, upGifQualitySel, upModeSel].forEach(s => s.addEventListener("change", saveUpOpts));
                             upTranspColor.addEventListener("input", saveUpOpts);
 
                             // 프로그레스
@@ -2626,7 +2629,8 @@ input[type=checkbox]:checked::after {
                                         const bUrl = createURL(new Blob([code], {
                                             type: 'application/javascript'
                                         }));
-                                        const n = navigator.hardwareConcurrency || 4
+                                        const epMode = upModeSel.value;
+                                        const n = epMode === "webgpu" ? 1 : (navigator.hardwareConcurrency || 4)
                                             , ws = []
                                             , ps = [];
                                         for (let i = 0; i < n; i++) {
@@ -2641,7 +2645,8 @@ input[type=checkbox]:checked::after {
                                             w.postMessage({
                                                 type: "init",
                                                 modelBase: WAIFU2X_MODEL_BASE,
-                                                wasmPaths: ONNX_WASM_PATH
+                                                wasmPaths: ONNX_WASM_PATH,
+                                                ep: epMode
                                             });
                                             ws.push(w);
                                         }

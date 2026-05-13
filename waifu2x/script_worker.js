@@ -82,10 +82,11 @@ const onnx_session = {
     get_session: async function (onnx_path) {
         if (!(onnx_path in this.sessions)) {
             try {
+                // 선택된 연산 모드(GPU 또는 CPU)를 기반으로 Provider 설정
+                const epList = self.__EP__ === "webgpu" ? ["webgpu", "wasm"] : ["wasm"];
                 this.sessions[onnx_path] = await ort.InferenceSession.create(
                     onnx_path,
-                    // WebGPU 가속을 최우선으로 시도하고, 실패/미지원 시 WASM으로 폴백
-                    { executionProviders: ["webgpu", "wasm"] });
+                    { executionProviders: epList });
             } catch (error) {
                 console.log(error);
                 return null;
@@ -617,6 +618,7 @@ onmessage = async function (e) {
     if (data.type === "init") {
         // 모델 기본 경로 및 WASM 경로 설정
         self.__MODEL_BASE__ = data.modelBase;
+        self.__EP__ = data.ep || "webgpu";
         if (data.wasmPaths) {
             ort.env.wasm.wasmPaths = data.wasmPaths;
         }
