@@ -2519,20 +2519,6 @@ input[type=checkbox]:checked::after {
                                                 });
                                             });
                                         });
-                                    } else {
-                                        await new Promise(r => {
-                                            const img = new Image();
-                                            img.onload = () => {
-                                                const cv = document.createElement("canvas");
-                                                cv.width = img.naturalWidth; cv.height = img.naturalHeight;
-                                                const cx = cv.getContext("2d", { willReadFrequently: true });
-                                                cx.drawImage(img, 0, 0);
-                                                processImageData(cx.getImageData(0, 0, cv.width, cv.height));
-                                                r();
-                                            };
-                                            img.onerror = r;
-                                            img.src = item.url;
-                                        });
                                     }
                                 }
 
