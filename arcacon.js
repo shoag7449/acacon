@@ -2454,90 +2454,12 @@ input[type=checkbox]:checked::after {
                             const upAlphaRight = createTagClass("div", "", null, upAlphaRow);
                             upAlphaRight.style.cssText = "display:flex;align-items:center;gap:12px;justify-content:flex-end;width:250px;";
 
-                            const upTranspColorWrap = createTagClass("div", "", null, upAlphaRight);
-                            upTranspColorWrap.style.cssText = "display:flex;align-items:center;gap:6px;";
 
-                            const upTranspColorLabel = createTagClass("span", "mainfrmSpan", "GIF 투명색", upTranspColorWrap);
-                            const upTranspColor = createControl("color", upTranspColorWrap);
-                            upTranspColor.style.cssText = "width:32px;height:24px;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;padding:0;vertical-align:middle;";
-
-                            const upTranspAutoBtn = createTagClass("button", "", "자동", upTranspColorWrap);
-                            upTranspAutoBtn.style.cssText = "background:#4f46e5;color:white;border:none;border-radius:4px;padding:2px 8px;font-size:12px;cursor:pointer;height:24px;font-weight:600;";
-
-                            upTranspAutoBtn.addEventListener("click", async () => {
-                                const oldText = upTranspAutoBtn.textContent;
-                                upTranspAutoBtn.textContent = "분석중...";
-                                upTranspAutoBtn.disabled = true;
-
-                                const candidates = [
-                                    { r: 255, g: 0, b: 255, hex: "#ff00ff", minD: Infinity }, // 마젠타
-                                    { r: 0, g: 255, b: 0, hex: "#00ff00", minD: Infinity },   // 라임
-                                    { r: 0, g: 255, b: 255, hex: "#00ffff", minD: Infinity }, // 시안
-                                    { r: 255, g: 255, b: 0, hex: "#ffff00", minD: Infinity }, // 옐로우
-                                    { r: 255, g: 0, b: 0, hex: "#ff0000", minD: Infinity },   // 레드
-                                    { r: 0, g: 0, b: 255, hex: "#0000ff", minD: Infinity },   // 블루
-                                    { r: 255, g: 255, b: 255, hex: "#ffffff", minD: Infinity } // 화이트
-                                ];
-
-                                const seenColors = new Set();
-                                const processImageData = (imgData) => {
-                                    const d = imgData.data;
-                                    for (let i = 0; i < d.length; i += 4) {
-                                        if (d[i + 3] < 128) continue;
-                                        const R = d[i], G = d[i + 1], B = d[i + 2];
-                                        const rgb = (R << 16) | (G << 8) | B;
-                                        if (seenColors.has(rgb)) continue;
-                                        seenColors.add(rgb);
-
-                                        for (let j = 0; j < candidates.length; j++) {
-                                            const c = candidates[j];
-                                            const dist = (R - c.r) * (R - c.r) + (G - c.g) * (G - c.g) + (B - c.b) * (B - c.b);
-                                            if (dist < c.minD) c.minD = dist;
-                                        }
-                                    }
-                                };
-
-                                for (const item of upscaleItems) {
-                                    if (item.extension === "gif") {
-                                        await new Promise(r => {
-                                            item.tmpBlob.arrayBuffer().then(ab => {
-                                                const eg = GIFS();
-                                                eg.dec.load({
-                                                    files: [],
-                                                    buffers: [ab],
-                                                    oncomplete: async F => {
-                                                        if (F && F[0]) {
-                                                            for (let f of F[0].frames) {
-                                                                const ctx = f.context || f.canvas.getContext("2d");
-                                                                processImageData(ctx.getImageData(0, 0, f.canvas.width, f.canvas.height));
-                                                                await new Promise(res => setTimeout(res, 0)); // UI 멈춤 방지
-                                                            }
-                                                        }
-                                                        r();
-                                                    },
-                                                    onerror: r
-                                                });
-                                            });
-                                        });
-                                    }
-                                }
-
-                                let best = candidates[0];
-                                for (let c of candidates) {
-                                    if (c.minD > best.minD) best = c;
-                                }
-
-                                upTranspColor.value = best.hex;
-                                saveUpOpts();
-                                upTranspAutoBtn.textContent = oldText;
-                                upTranspAutoBtn.disabled = false;
-                            });
 
                             const upAlphaChk = createControl("checkbox", upAlphaRight);
                             upAlphaChk.style.cssText = "width:18px;height:18px;cursor:pointer;margin:0;";
 
                             upAlphaChk.addEventListener("change", () => {
-                                upTranspColorWrap.style.display = upAlphaChk.checked ? "flex" : "none";
                                 saveUpOpts();
                             });
                             append(upOpt, upAlphaRow);
@@ -2545,7 +2467,7 @@ input[type=checkbox]:checked::after {
                             // localStorage 저장/복원
                             const UP_OPTS_KEY = "arcacon_upscale_opts";
                             const saveUpOpts = () => {
-                                try { localStorage.setItem(UP_OPTS_KEY, JSON.stringify({ model: upModelSel.value, scale: upScaleSel.value, noise: upNoiseSel.value, tile: upTileSel.value, gifQuality: upGifQualitySel.value, mode: upModeSel.value, alpha: upAlphaChk.checked, transpColor: upTranspColor.value })); } catch (e) { }
+                                try { localStorage.setItem(UP_OPTS_KEY, JSON.stringify({ model: upModelSel.value, scale: upScaleSel.value, noise: upNoiseSel.value, tile: upTileSel.value, gifQuality: upGifQualitySel.value, mode: upModeSel.value, alpha: upAlphaChk.checked })); } catch (e) { }
                             };
                             try {
                                 const saved = JSON.parse(localStorage.getItem(UP_OPTS_KEY));
@@ -2557,16 +2479,11 @@ input[type=checkbox]:checked::after {
                                     if (saved.gifQuality) upGifQualitySel.value = saved.gifQuality;
                                     if (saved.mode) upModeSel.value = saved.mode;
                                     if (saved.alpha !== undefined) upAlphaChk.checked = saved.alpha;
-                                    if (saved.transpColor) upTranspColor.value = saved.transpColor;
+
                                 }
                             } catch (e) { }
-                            if (!upAlphaChk.checked) {
-                                upTranspColorWrap.style.display = "none";
-                            } else {
-                                upTranspColorWrap.style.display = "flex";
-                            }
                             [upModelSel, upScaleSel, upNoiseSel, upTileSel, upGifQualitySel, upModeSel].forEach(s => s.addEventListener("change", saveUpOpts));
-                            upTranspColor.addEventListener("input", saveUpOpts);
+
 
                             // 프로그레스
                             const upPW = createTagClass("div", "");
@@ -2815,10 +2732,36 @@ input[type=checkbox]:checked::after {
 
                                                 let transpKey = null, tR = 0, tG = 0, tB = 0;
                                                 if (hasAnyTransp && alpha) {
-                                                    const tc = upTranspColor.value;
-                                                    tR = parseInt(tc.slice(1, 3), 16);
-                                                    tG = parseInt(tc.slice(3, 5), 16);
-                                                    tB = parseInt(tc.slice(5, 7), 16);
+                                                    const candidates = [
+                                                        { r: 255, g: 0, b: 255, minD: Infinity }, // 마젠타
+                                                        { r: 0, g: 255, b: 0, minD: Infinity },   // 라임
+                                                        { r: 0, g: 255, b: 255, minD: Infinity }, // 시안
+                                                        { r: 255, g: 255, b: 0, minD: Infinity }, // 옐로우
+                                                        { r: 255, g: 0, b: 0, minD: Infinity },   // 레드
+                                                        { r: 0, g: 0, b: 255, minD: Infinity },   // 블루
+                                                        { r: 255, g: 255, b: 255, minD: Infinity } // 화이트
+                                                    ];
+                                                    const seenColors = new Set();
+                                                    for (let fd of fl) {
+                                                        const d = fd.imageData.data;
+                                                        for (let i = 0; i < d.length; i += 4) {
+                                                            if (d[i + 3] < 128) continue;
+                                                            const R = d[i], G = d[i + 1], B = d[i + 2];
+                                                            const rgb = (R << 16) | (G << 8) | B;
+                                                            if (seenColors.has(rgb)) continue;
+                                                            seenColors.add(rgb);
+                                                            for (let j = 0; j < candidates.length; j++) {
+                                                                const c = candidates[j];
+                                                                const dist = (R - c.r) * (R - c.r) + (G - c.g) * (G - c.g) + (B - c.b) * (B - c.b);
+                                                                if (dist < c.minD) c.minD = dist;
+                                                            }
+                                                        }
+                                                    }
+                                                    let best = candidates[0];
+                                                    for (let c of candidates) {
+                                                        if (c.minD > best.minD) best = c;
+                                                    }
+                                                    tR = best.r; tG = best.g; tB = best.b;
                                                     transpKey = (tR << 16) | (tG << 8) | tB;
                                                 }
 
