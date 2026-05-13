@@ -28,8 +28,11 @@
     const FFMPEG_CORE_JS_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.min.js"; // gif 파일 변환 관련 모듈
     const FFMPEG_CORE_WASM_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm";  // gif 파일 변환 관련 모듈
     const GIF_EDIT_URL = "https://shoag7449.github.io/acacon/gifs.js";  // gif 파일 편집 관련 모듈
-    const ONNX_RUNTIME_URL = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/ort.all.min.js"; // waifu2x ONNX 런타임
-    const ONNX_WASM_PATH = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/"; // waifu2x ONNX WASM 경로
+    const ONNX_CDN_BASE = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/";
+    const ONNX_RUNTIME_URLS = {
+        webgpu: ONNX_CDN_BASE + "ort.webgpu.min.js",  // WebGPU EP 포함 (GPU 가속)
+        wasm:   ONNX_CDN_BASE + "ort.wasm.min.js"      // WASM 전용 (CPU, 경량)
+    };
     const WAIFU2X_WORKER_URL = "https://shoag7449.github.io/acacon/waifu2x/script_worker.js"; // waifu2x 워커 스크립트
     const WAIFU2X_MODEL_BASE = "https://shoag7449.github.io/acacon/waifu2x"; // waifu2x 모델 기본 경로
     const MODERN_CSS_TEXT = `
@@ -752,7 +755,7 @@ input[type=checkbox]:checked::after {
         } else {
             gifEditChk.disabled = false;
         }
-
+        
         if (!gifConvChk.checked || !pngConvChk.checked) {
             upscaleChk.checked = false;
             upscaleChk.disabled = true;
@@ -2453,14 +2456,14 @@ input[type=checkbox]:checked::after {
 
                             const upTranspColorWrap = createTagClass("div", "", null, upAlphaRight);
                             upTranspColorWrap.style.cssText = "display:flex;align-items:center;gap:6px;";
-
+                            
                             const upTranspColorLabel = createTagClass("span", "mainfrmSpan", "투명색", upTranspColorWrap);
                             const upTranspColor = createControl("color", upTranspColorWrap);
                             upTranspColor.style.cssText = "width:32px;height:24px;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;padding:0;vertical-align:middle;";
-
+                            
                             const upTranspAutoBtn = createTagClass("button", "", "자동", upTranspColorWrap);
                             upTranspAutoBtn.style.cssText = "background:#4f46e5;color:white;border:none;border-radius:4px;padding:2px 8px;font-size:12px;cursor:pointer;height:24px;font-weight:600;";
-
+                            
                             upTranspAutoBtn.addEventListener("click", async () => {
                                 const oldText = upTranspAutoBtn.textContent;
                                 upTranspAutoBtn.textContent = "분석중...";
@@ -2546,7 +2549,7 @@ input[type=checkbox]:checked::after {
 
                             const upAlphaChk = createControl("checkbox", upAlphaRight);
                             upAlphaChk.style.cssText = "width:18px;height:18px;cursor:pointer;margin:0;";
-
+                            
                             upAlphaChk.addEventListener("change", () => {
                                 upTranspColorWrap.style.display = upAlphaChk.checked ? "flex" : "none";
                                 saveUpOpts();
@@ -2604,7 +2607,7 @@ input[type=checkbox]:checked::after {
                                 if (upBtn.dataset.running === "1") {
                                     upCancelled = true;
                                     if (triggerStopCleanup) triggerStopCleanup();
-
+                                    
                                     upBtn.dataset.running = "0";
                                     upBtn.textContent = "🔍 업스케일 시작";
                                     upPT.textContent = "⏸️ 정지됨 (작업 취소 및 초기화 완료)";
@@ -2628,12 +2631,14 @@ input[type=checkbox]:checked::after {
                                 if (!window.__waifu2xWorkers) {
                                     upPT.textContent = "waifu2x 로딩 중...";
                                     try {
-                                        const [a, b] = await Promise.all([fetch(ONNX_RUNTIME_URL), fetch(WAIFU2X_WORKER_URL)]);
+                                        const epMode = upModeSel.value;
+                                        const ortUrl = ONNX_RUNTIME_URLS[epMode] || ONNX_RUNTIME_URLS.wasm;
+                                        const [a, b] = await Promise.all([fetch(ortUrl), fetch(WAIFU2X_WORKER_URL)]);
                                         const code = (await a.text()) + "\n;\n" + (await b.text());
                                         const bUrl = createURL(new Blob([code], {
                                             type: 'application/javascript'
                                         }));
-                                        const epMode = upModeSel.value;
+
                                         const n = epMode === "webgpu" ? 1 : (navigator.hardwareConcurrency || 4)
                                             , ws = []
                                             , ps = [];
@@ -2649,7 +2654,7 @@ input[type=checkbox]:checked::after {
                                             w.postMessage({
                                                 type: "init",
                                                 modelBase: WAIFU2X_MODEL_BASE,
-                                                wasmPaths: ONNX_WASM_PATH,
+                                                wasmPaths: ONNX_CDN_BASE,
                                                 ep: epMode
                                             });
                                             ws.push(w);
@@ -2676,7 +2681,7 @@ input[type=checkbox]:checked::after {
                                 // 동적 워커 디스패치: 유휴 워커에 즉시 작업 할당
                                 const wFree = pool.map(() => true);
                                 const pending = [];
-
+                                
                                 triggerStopCleanup = () => {
                                     while (pending.length > 0) pending.shift()();
                                     if (window.__waifu2xWorkers) {
@@ -2687,7 +2692,7 @@ input[type=checkbox]:checked::after {
                                         window.__waifu2xWorkers = null;
                                     }
                                 };
-
+                                
                                 const dispatch = (imageData, fid, useAlpha = alpha) => new Promise(resolve => {
                                     const tryRun = () => {
                                         if (upCancelled) {
@@ -2860,7 +2865,7 @@ input[type=checkbox]:checked::after {
                                                         enc.setDelay((fl[nextEncodeIndex].delay || 5) * 10);
                                                         enc.setDispose(fl[nextEncodeIndex].disposal);
                                                         enc.addFrame(frame, true, false);
-
+                                                        
                                                         // 가비지 컬렉터가 수거하도록 참조 해제 (대용량 메모리 최적화)
                                                         uf[nextEncodeIndex] = null;
                                                         nextEncodeIndex++;
