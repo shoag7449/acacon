@@ -2221,7 +2221,7 @@ input[type=checkbox]:checked::after {
                                 const dlBtn = createTagClass("button", "gifEditfrmBtn", null, btnGrp);
                                 setHTML(dlBtn, "다운");
                                 dlBtn.addEventListener("click", () => {
-                                    createDownloadTag(createURL(item.tmpBlob), item.name).click();
+                                    createDownloadTag(createURL(item.tmpBlob), item.name);
                                 }
                                 );
                                 // GIF인 경우 편집 버튼 추가
@@ -2421,11 +2421,13 @@ input[type=checkbox]:checked::after {
                             const upScaleSel = mkRow(upOpt, "스케일", [["scale2x", "2x"], ["scale4x", "4x"]], "200px");
                             const upNoiseSel = mkRow(upOpt, "노이즈 제거", [["none", "없음"], ["noise0", "약"], ["noise1", "중"], ["noise2", "강"], ["noise3", "최강"]], "200px");
                             const upTileSel = mkRow(upOpt, "타일", [["64", "64"], ["128", "128"], ["256", "256"]], "200px");
+                            const upGifQualitySel = mkRow(upOpt, "GIF 퀄리티", [["1", "1 (최상)"], ["3", "3"], ["6", "6 (기본)"], ["10", "10"], ["20", "20 (최하)"]], "200px");
                             // 기본값: CUNet Art, 2x, 최강, 64
                             upModelSel.value = "cunet,art";
                             upScaleSel.value = "scale2x";
                             upNoiseSel.value = "noise3";
                             upTileSel.value = "64";
+                            upGifQualitySel.value = "6";
 
                             // CUNet은 scale4x 미지원 → 동적 제한
                             const scale4xOpt = upScaleSel.querySelector('option[value="scale4x"]');
@@ -2456,7 +2458,7 @@ input[type=checkbox]:checked::after {
                             // localStorage 저장/복원
                             const UP_OPTS_KEY = "arcacon_upscale_opts";
                             const saveUpOpts = () => {
-                                try { localStorage.setItem(UP_OPTS_KEY, JSON.stringify({ model: upModelSel.value, scale: upScaleSel.value, noise: upNoiseSel.value, tile: upTileSel.value, alpha: upAlphaChk.checked, transpColor: upTranspColor.value })); } catch (e) { }
+                                try { localStorage.setItem(UP_OPTS_KEY, JSON.stringify({ model: upModelSel.value, scale: upScaleSel.value, noise: upNoiseSel.value, tile: upTileSel.value, gifQuality: upGifQualitySel.value, alpha: upAlphaChk.checked, transpColor: upTranspColor.value })); } catch (e) { }
                             };
                             try {
                                 const saved = JSON.parse(localStorage.getItem(UP_OPTS_KEY));
@@ -2465,6 +2467,7 @@ input[type=checkbox]:checked::after {
                                     if (saved.scale) upScaleSel.value = saved.scale;
                                     if (saved.noise) upNoiseSel.value = saved.noise;
                                     if (saved.tile) upTileSel.value = saved.tile;
+                                    if (saved.gifQuality) upGifQualitySel.value = saved.gifQuality;
                                     if (saved.alpha !== undefined) upAlphaChk.checked = saved.alpha;
                                     if (saved.transpColor) upTranspColor.value = saved.transpColor;
                                 }
@@ -2473,7 +2476,7 @@ input[type=checkbox]:checked::after {
                                 upTranspColorLabel.style.display = "none";
                                 upTranspColor.style.display = "none";
                             }
-                            [upModelSel, upScaleSel, upNoiseSel, upTileSel].forEach(s => s.addEventListener("change", saveUpOpts));
+                            [upModelSel, upScaleSel, upNoiseSel, upTileSel, upGifQualitySel].forEach(s => s.addEventListener("change", saveUpOpts));
                             upTranspColor.addEventListener("input", saveUpOpts);
 
                             // 프로그레스
@@ -2688,46 +2691,59 @@ input[type=checkbox]:checked::after {
                                                 )());
                                                 const uf = new Array(fl.length);
                                                 let fDone = 0;
-                                                await Promise.all(fl.map(fd => (async () => {
-                                                    const gfid = fOff + fd.index;
-                                                    uf[fd.index] = await dispatch(fd.imageData, gfid);
-                                                    fDone++;
-                                                    prog(` │ 프레임 ${fDone}/${fl.length}`);
-                                                }
-                                                )()));
+                                                let nextEncodeIndex = 0;
+
                                                 const enc = eg.enc();
                                                 enc.setRepeat(0);
-                                                enc.setQuality(6);
+                                                enc.setQuality(parseInt(upGifQualitySel.value) || 6);
                                                 enc.setGifSize(oW * scale, oH * scale);
                                                 enc.start();
-                                                for (let i = 0; i < uf.length; i++) {
-                                                    const frame = uf[i];
-                                                    if (hasAnyTransp && alpha) {
-                                                        const tc = upTranspColor.value;
-                                                        const tR = parseInt(tc.slice(1, 3), 16), tG = parseInt(tc.slice(3, 5), 16), tB = parseInt(tc.slice(5, 7), 16);
-                                                        const transpKey = (tR << 16) | (tG << 8) | tB;
-                                                        const d = frame.data;
-                                                        let hasTranspPixel = false;
-                                                        for (let p = 3; p < d.length; p += 4) {
-                                                            if (d[p] < 128) {
-                                                                d[p - 3] = tR;
-                                                                d[p - 2] = tG;
-                                                                d[p - 1] = tB;
-                                                                d[p] = 255;
-                                                                hasTranspPixel = true;
-                                                            }
-                                                        }
-                                                        if (hasTranspPixel)
-                                                            enc.setTransparent(transpKey);
-                                                        else
-                                                            enc.setTransparent(null);
-                                                    } else {
-                                                        enc.setTransparent(null);
-                                                    }
-                                                    enc.setDelay((fl[i].delay || 5) * 10);
-                                                    enc.setDispose(fl[i].disposal);
-                                                    enc.addFrame(frame, true, false);
+
+                                                let transpKey = null, tR = 0, tG = 0, tB = 0;
+                                                if (hasAnyTransp && alpha) {
+                                                    const tc = upTranspColor.value;
+                                                    tR = parseInt(tc.slice(1, 3), 16);
+                                                    tG = parseInt(tc.slice(3, 5), 16);
+                                                    tB = parseInt(tc.slice(5, 7), 16);
+                                                    transpKey = (tR << 16) | (tG << 8) | tB;
                                                 }
+
+                                                await Promise.all(fl.map(async (fd) => {
+                                                    const gfid = fOff + fd.index;
+                                                    const upFrame = await dispatch(fd.imageData, gfid);
+                                                    uf[fd.index] = upFrame;
+                                                    fDone++;
+                                                    prog(` │ 프레임 ${fDone}/${fl.length}`);
+
+                                                    // 준비된 프레임들을 순서대로 즉시 인코딩하여 메모리 최적화
+                                                    while (nextEncodeIndex < fl.length && uf[nextEncodeIndex]) {
+                                                        const frame = uf[nextEncodeIndex];
+                                                        if (hasAnyTransp && alpha) {
+                                                            const d = frame.data;
+                                                            let hasTranspPixel = false;
+                                                            for (let p = 3; p < d.length; p += 4) {
+                                                                if (d[p] < 128) {
+                                                                    d[p - 3] = tR;
+                                                                    d[p - 2] = tG;
+                                                                    d[p - 1] = tB;
+                                                                    d[p] = 255;
+                                                                    hasTranspPixel = true;
+                                                                }
+                                                            }
+                                                            enc.setTransparent(hasTranspPixel ? transpKey : null);
+                                                        } else {
+                                                            enc.setTransparent(null);
+                                                        }
+                                                        enc.setDelay((fl[nextEncodeIndex].delay || 5) * 10);
+                                                        enc.setDispose(fl[nextEncodeIndex].disposal);
+                                                        enc.addFrame(frame, true, false);
+                                                        
+                                                        // 가비지 컬렉터가 수거하도록 참조 해제 (대용량 메모리 최적화)
+                                                        uf[nextEncodeIndex] = null;
+                                                        nextEncodeIndex++;
+                                                    }
+                                                }));
+
                                                 enc.finish();
                                                 resolve(enc.toBlob());
                                             }
