@@ -468,68 +468,43 @@ const onnx_runner = {
         }
         if (block_callback)
             block_callback(0, all_blocks, true);
-        // GPU 파이프라이닝: 프리페치 깊이 2 — GPU 커맨드 큐를 항상 가득 채움
-        const inferTile = async (tile_x, tile_alpha3) => {
-            let tile_y, tile_alpha_y = null;
-            if (has_alpha) {
-                if (tta_level > 0) tile_x = await this.tta_split(tile_x, BigInt(tta_level));
-                var output = await model.run({ x: tile_x });
-                tile_y = output.y;
-                if (tta_level > 0) tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
-                var alpha_output = await alpha_model.run({ x: tile_alpha3 });
-                tile_alpha_y = alpha_output.y;
-            } else {
-                if (tta_level > 0) tile_x = await this.tta_split(tile_x, BigInt(tta_level));
-                var tile_output = await model.run({ x: tile_x });
-                tile_y = tile_output.y;
-                if (tta_level > 0) tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
-            }
-            return { tile_y, tile_alpha_y };
-        };
-
-        const prepareTile = (tileIdx) => {
-            if (tileIdx >= tiles.length) return null;
-            const [ti, tj] = tiles[tileIdx];
-            let tx = this.crop_tensor(x, tj, ti, tile_size, tile_size);
-            let ta = has_alpha ? this.crop_tensor(alpha3, tj, ti, tile_size, tile_size) : null;
-            let sc = config.color_stability ? this.check_single_color(tx, ta, has_alpha) : null;
-            if (sc == null) {
-                return inferTile(tx, ta);
-            } else {
-                return Promise.resolve({ single_color: sc });
-            }
-        };
-
-        // 프리페치 큐 초기화 (깊이 2)
-        const PREFETCH_DEPTH = 2;
-        const prefetchQueue = [];
-        for (let pf = 0; pf < Math.min(PREFETCH_DEPTH, tiles.length); pf++) {
-            prefetchQueue.push(prepareTile(pf));
-        }
-        let nextPrepareIdx = PREFETCH_DEPTH;
-
         for (var k = 0; k < tiles.length; ++k) {
             const [i, j, ii, jj, h_i, w_i] = tiles[k];
 
-            // 현재 타일의 GPU 결과를 수령
-            const currentResult = await prefetchQueue.shift();
-
-            // 다음 프리페치 투입 — GPU 큐를 항상 가득 채움
-            if (nextPrepareIdx < tiles.length) {
-                prefetchQueue.push(prepareTile(nextPrepareIdx));
-                nextPrepareIdx++;
+            let tile_x = this.crop_tensor(x, j, i, tile_size, tile_size);
+            let tile_alpha3 = null;
+            if (has_alpha) {
+                tile_alpha3 = this.crop_tensor(alpha3, j, i, tile_size, tile_size);
             }
-
-            // CPU 후처리: SeamBlending + Canvas 기록
-            let tile_y, tile_alpha_y;
-            if (currentResult.single_color != null) {
-                [tile_y, tile_alpha_y] = this.create_single_color_tensor(
-                    currentResult.single_color, tile_size * config.scale - config.offset * 2);
+            let single_color = (config.color_stability ?
+                this.check_single_color(tile_x, tile_alpha3, has_alpha) : null);
+            if (single_color == null) {
+                if (has_alpha) {
+                    if (tta_level > 0) {
+                        tile_x = await this.tta_split(tile_x, BigInt(tta_level));
+                    }
+                    var output = await model.run({ x: tile_x });
+                    var tile_y = output.y;
+                    if (tta_level > 0) {
+                        tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
+                    }
+                    var alpha_output = await alpha_model.run({ x: tile_alpha3 });
+                    var tile_alpha_y = alpha_output.y;
+                } else {
+                    if (tta_level > 0) {
+                        tile_x = await this.tta_split(tile_x, BigInt(tta_level));
+                    }
+                    var tile_output = await model.run({ x: tile_x });
+                    var tile_y = tile_output.y;
+                    if (tta_level > 0) {
+                        tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
+                    }
+                }
             } else {
-                tile_y = currentResult.tile_y;
-                tile_alpha_y = currentResult.tile_alpha_y;
+                // no need waifu2x, tile is single color image
+                var [tile_y, tile_alpha_y] = this.create_single_color_tensor(
+                    single_color, tile_size * config.scale - config.offset * 2);
             }
-
             if (has_alpha) {
                 var rgb = seam_blending.update(tile_y, h_i, w_i);
                 var alpha = seam_blending_alpha.update(tile_alpha_y, h_i, w_i);
