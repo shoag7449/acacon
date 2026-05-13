@@ -2457,7 +2457,7 @@ input[type=checkbox]:checked::after {
                             const upTranspColorWrap = createTagClass("div", "", null, upAlphaRight);
                             upTranspColorWrap.style.cssText = "display:flex;align-items:center;gap:6px;";
 
-                            const upTranspColorLabel = createTagClass("span", "mainfrmSpan", "투명색", upTranspColorWrap);
+                            const upTranspColorLabel = createTagClass("span", "mainfrmSpan", "GIF 투명색", upTranspColorWrap);
                             const upTranspColor = createControl("color", upTranspColorWrap);
                             upTranspColor.style.cssText = "width:32px;height:24px;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;padding:0;vertical-align:middle;";
 
