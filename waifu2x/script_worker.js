@@ -1,14 +1,14 @@
 var WAIFU2X;
 
-function gen_arch_config()
-{
+function gen_arch_config() {
     var config = {};
 
     /* swin_unet */
     config["swin_unet"] = {
-        art: {color_stability: true, padding: "replication"},
-        art_scan: {color_stability: false, padding: "replication"},
-        photo: {color_stability: false, padding: "reflection"}};
+        art: { color_stability: true, padding: "replication" },
+        art_scan: { color_stability: false, padding: "replication" },
+        photo: { color_stability: false, padding: "reflection" }
+    };
     var swin = config["swin_unet"];
     const calc_tile_size_swin_unet = function (tile_size, config) {
         while (true) {
@@ -22,22 +22,23 @@ function gen_arch_config()
     for (const domain of ["art", "art_scan", "photo"]) {
         var base_config = {
             ...swin[domain],
-            arch: "swin_unet", domain: domain, calc_tile_size: calc_tile_size_swin_unet};
+            arch: "swin_unet", domain: domain, calc_tile_size: calc_tile_size_swin_unet
+        };
         swin[domain] = {
-            scale2x: {...base_config, scale: 2, offset: 16},
-            scale4x: {...base_config, scale: 4, offset: 32},
-            scale1x: {...base_config, scale: 1, offset: 8}, // bypass for alpha denoise
+            scale2x: { ...base_config, scale: 2, offset: 16 },
+            scale4x: { ...base_config, scale: 4, offset: 32 },
+            scale1x: { ...base_config, scale: 1, offset: 8 }, // bypass for alpha denoise
         };
         for (var i = 0; i < 4; ++i) {
-            swin[domain]["noise" + i + "_scale2x"] = {...base_config, scale: 2, offset: 16};
-            swin[domain]["noise" + i + "_scale4x"] = {...base_config, scale: 4, offset: 32};
-            swin[domain]["noise" + i] = {...base_config, scale: 1, offset: 8};
+            swin[domain]["noise" + i + "_scale2x"] = { ...base_config, scale: 2, offset: 16 };
+            swin[domain]["noise" + i + "_scale4x"] = { ...base_config, scale: 4, offset: 32 };
+            swin[domain]["noise" + i] = { ...base_config, scale: 1, offset: 8 };
         }
     }
     /* cunet */
-    config["cunet"] = {art: {}};
+    config["cunet"] = { art: {} };
     const calc_tile_size_cunet = function (tile_size, config) {
-        var adj = config.scale == 1 ? 16:32;
+        var adj = config.scale == 1 ? 16 : 32;
         tile_size = ((tile_size * config.scale + config.offset * 2) - adj) / config.scale;
         tile_size -= tile_size % 4;
         return tile_size;
@@ -48,13 +49,13 @@ function gen_arch_config()
         padding: "replication",
     };
     config["cunet"]["art"] = {
-        scale2x: {...base_config, scale: 2, offset: 36},
-        scale1x: {...base_config, scale: 1, offset: 28}, // bypass for alpha denoise
+        scale2x: { ...base_config, scale: 2, offset: 36 },
+        scale1x: { ...base_config, scale: 1, offset: 28 }, // bypass for alpha denoise
     };
     var base = config["cunet"];
     for (var i = 0; i < 4; ++i) {
-        base["art"]["noise" + i + "_scale2x"] = {...base_config, scale: 2, offset: 36};
-        base["art"]["noise" + i] = {...base_config, scale: 1, offset: 28};
+        base["art"]["noise" + i + "_scale2x"] = { ...base_config, scale: 2, offset: 36 };
+        base["art"]["noise" + i] = { ...base_config, scale: 1, offset: 28 };
     }
 
     return config;
@@ -62,7 +63,7 @@ function gen_arch_config()
 
 const CONFIG = {
     arch: gen_arch_config(),
-    get_config: function(arch, style, method) {
+    get_config: function (arch, style, method) {
         if ((arch in this.arch) && (style in this.arch[arch]) && (method in this.arch[arch][style])) {
             const config = this.arch[arch][style][method];
             config["path"] = `${self.__MODEL_BASE__ || '.'}/models/${arch}/${style}/${method}.onnx`;
@@ -71,20 +72,20 @@ const CONFIG = {
             return null;
         }
     },
-    get_helper_model_path: function(name) {
+    get_helper_model_path: function (name) {
         return `${self.__MODEL_BASE__ || '.'}/models/utils/${name}.onnx`;
     }
 };
 
 const onnx_session = {
     sessions: {},
-    get_session: async function(onnx_path) {
+    get_session: async function (onnx_path) {
         if (!(onnx_path in this.sessions)) {
             try {
                 this.sessions[onnx_path] = await ort.InferenceSession.create(
                     onnx_path,
-                    // webgl provider does not work due to various problems
-                    { executionProviders: ["wasm"] });
+                    // WebGPU 가속을 최우선으로 시도하고, 실패/미지원 시 WASM으로 폴백
+                    { executionProviders: ["webgpu", "wasm"] });
             } catch (error) {
                 console.log(error);
                 return null;
@@ -147,7 +148,7 @@ const SeamBlending = class {
                     old_weight = old_weight / next_weight;
                     new_weight = 1.0 - old_weight;
                     this.pixels.data[buffer_index] = (this.pixels.data[buffer_index] * old_weight +
-                                                      x.data[tile_index] * new_weight);
+                        x.data[tile_index] * new_weight);
                     this.weights.data[buffer_index] += this.blend_filter.data[tile_index];
                     this.output.data[tile_index] = this.pixels.data[buffer_index];
                 }
@@ -224,7 +225,7 @@ const onnx_runner = {
         }
         return data;
     },
-    to_input: function(rgba, width, height, keep_alpha = false) {
+    to_input: function (rgba, width, height, keep_alpha = false) {
         // HWC -> CHW
         // 0-255 -> 0.0-1.0
         if (keep_alpha) {
@@ -266,7 +267,7 @@ const onnx_runner = {
             return [new ort.Tensor('float32', rgb, [1, 3, height, width])];
         }
     },
-    to_image_data: function(z, alpha3, width, height) {
+    to_image_data: function (z, alpha3, width, height) {
         // CHW -> HWC
         // 0.0-1.0 -> 0-255
         const rgba = new Uint8ClampedArray(height * width * 4);
@@ -297,8 +298,7 @@ const onnx_runner = {
         }
         return new ImageData(rgba, width, height);
     },
-    crop_image_data: function(image_data, x, y, width, height)
-    {
+    crop_image_data: function (image_data, x, y, width, height) {
         const roi = new Uint8ClampedArray(height * width * 4);
         const ey = y + height;
         let i = 0;
@@ -311,8 +311,7 @@ const onnx_runner = {
         }
         return new ImageData(roi, width, height);
     },
-    crop_tensor: function(bchw, x, y, width, height)
-    {
+    crop_tensor: function (bchw, x, y, width, height) {
         const [B, C, H, W] = bchw.dims;
         const ex = x + width;
         const ey = y + height;
@@ -332,7 +331,7 @@ const onnx_runner = {
         }
         return new ort.Tensor('float32', roi, [B, C, height, width]);
     },
-    check_single_color: function(x, alpha3, keep_alpha=false) {
+    check_single_color: function (x, alpha3, keep_alpha = false) {
         const [B, C, H, W] = x.dims;
         let [r, g, b] = [x.data[0], x.data[1 * (H * W)], x.data[2 * (H * W)]];
         let a = 1.0;
@@ -342,8 +341,7 @@ const onnx_runner = {
                     let i = bi * (C * H * W) + h * W + w;
                     if (r != x.data[i + 0 * (H * W)]
                         || g != x.data[i + 1 * (H * W)]
-                        || b != x.data[i + 2 * (H * W)])
-                    {
+                        || b != x.data[i + 2 * (H * W)]) {
                         return null;
                     }
                 }
@@ -368,7 +366,7 @@ const onnx_runner = {
             return [r, g, b, 1.0];
         }
     },
-    check_alpha_channel: function(rgba) {
+    check_alpha_channel: function (rgba) {
         for (var i = 0; i < rgba.length; i += 4) {
             var alpha = rgba[i + 3];
             if (alpha != 255) {
@@ -377,7 +375,7 @@ const onnx_runner = {
         }
         return false;
     },
-    create_single_color_tensor: function(rgba, size) {
+    create_single_color_tensor: function (rgba, size) {
         // CHW
         var rgb = new Float32Array(size * size * 3);
         var alpha3 = new Float32Array(size * size * 3);
@@ -389,7 +387,7 @@ const onnx_runner = {
             }
         }
         return [new ort.Tensor("float32", rgb, [1, 3, size, size]),
-                new ort.Tensor("float32", alpha3, [1, 3, size, size])];
+        new ort.Tensor("float32", alpha3, [1, 3, size, size])];
     },
     shuffleArray: (array) => {
         for (let i = array.length - 1; i > 0; i--) {
@@ -397,11 +395,10 @@ const onnx_runner = {
             [array[i], array[j]] = [array[j], array[i]];
         }
     },
-    tiled_render: async function(image_data, config, alpha_config,
-                                 tta_level,
-                                 tile_size, tile_random,
-                                 output_ctx, block_callback)
-    {
+    tiled_render: async function (image_data, config, alpha_config,
+        tta_level,
+        tile_size, tile_random,
+        output_ctx, block_callback) {
         // NOTE: allowed tile_size = 64, 112, 160, 256, 400, 1024, ...
         // tile_size must be `((tile_size - 16) % 12 == 0 && (tile_size - 16) % 16 == 0)`
         this.stop_flag = false; // reset flag
@@ -412,7 +409,7 @@ const onnx_runner = {
         const output_width = image_data.width * config.scale;
         const output_height = image_data.height * config.scale;
         const _offCanvas = new OffscreenCanvas(output_width, output_height);
-        const _offCtx = _offCanvas.getContext("2d", {willReadFrequently: true});
+        const _offCtx = _offCanvas.getContext("2d", { willReadFrequently: true });
 
         // load model
         var has_alpha = alpha_config != null;
@@ -433,18 +430,18 @@ const onnx_runner = {
             var p = seam_blending.get_rendering_config();
             x = await this.alpha_border_padding(rgb, alpha1, BigInt(config.offset));
             x = await this.padding(x, BigInt(p.pad[0]), BigInt(p.pad[1]),
-                                   BigInt(p.pad[2]), BigInt(p.pad[3]), config.padding);
+                BigInt(p.pad[2]), BigInt(p.pad[3]), config.padding);
             alpha3 = await this.padding(alpha3, BigInt(p.pad[0]), BigInt(p.pad[1]),
-                                        BigInt(p.pad[2]), BigInt(p.pad[3]), config.padding);
+                BigInt(p.pad[2]), BigInt(p.pad[3]), config.padding);
             alpha1 = null;
         } else {
-            var alpha3 = {data: null};
+            var alpha3 = { data: null };
             x = x[0];
             var seam_blending = new SeamBlending(x.dims, config.scale, config.offset, tile_size);
             await seam_blending.build();
             var p = seam_blending.get_rendering_config();
             x = await this.padding(x, BigInt(p.pad[0]), BigInt(p.pad[1]),
-                                   BigInt(p.pad[2]), BigInt(p.pad[3]), config.padding);
+                BigInt(p.pad[2]), BigInt(p.pad[3]), config.padding);
         }
         var ch, h, w;
         [ch, h, w] = [x.dims[1], x.dims[2], x.dims[3]];
@@ -479,24 +476,24 @@ const onnx_runner = {
                 tile_alpha3 = this.crop_tensor(alpha3, j, i, tile_size, tile_size);
             }
             let single_color = (config.color_stability ?
-                                this.check_single_color(tile_x, tile_alpha3, has_alpha) : null);
+                this.check_single_color(tile_x, tile_alpha3, has_alpha) : null);
             if (single_color == null) {
                 if (has_alpha) {
                     if (tta_level > 0) {
                         tile_x = await this.tta_split(tile_x, BigInt(tta_level));
                     }
-                    var output = await model.run({x: tile_x});
+                    var output = await model.run({ x: tile_x });
                     var tile_y = output.y;
                     if (tta_level > 0) {
                         tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
                     }
-                    var alpha_output = await alpha_model.run({x: tile_alpha3});
+                    var alpha_output = await alpha_model.run({ x: tile_alpha3 });
                     var tile_alpha_y = alpha_output.y;
                 } else {
                     if (tta_level > 0) {
                         tile_x = await this.tta_split(tile_x, BigInt(tta_level));
                     }
-                    var tile_output = await model.run({x: tile_x});
+                    var tile_output = await model.run({ x: tile_x });
                     var tile_y = tile_output.y;
                     if (tta_level > 0) {
                         tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
@@ -511,11 +508,11 @@ const onnx_runner = {
                 var rgb = seam_blending.update(tile_y, h_i, w_i);
                 var alpha = seam_blending_alpha.update(tile_alpha_y, h_i, w_i);
                 var output_image_data = this.to_image_data(rgb.data, alpha.data,
-                                                           tile_y.dims[3], tile_y.dims[2]);
+                    tile_y.dims[3], tile_y.dims[2]);
             } else {
                 var rgb = seam_blending.update(tile_y, h_i, w_i);
                 var output_image_data = this.to_image_data(rgb.data, null,
-                                                           tile_y.dims[3], tile_y.dims[2]);
+                    tile_y.dims[3], tile_y.dims[2]);
             }
             _offCtx.putImageData(output_image_data, jj, ii);
             ++progress;
@@ -536,7 +533,7 @@ const onnx_runner = {
         // crop to actual output size and return ImageData
         return _offCtx.getImageData(0, 0, output_width, output_height);
     },
-    padding: async function(x, left, right, top, bottom, mode) {
+    padding: async function (x, left, right, top, bottom, mode) {
         const ses = await onnx_session.get_session(CONFIG.get_helper_model_path(mode + "_pad"));
         left = new ort.Tensor('int64', BigInt64Array.from([left]), []);
         right = new ort.Tensor('int64', BigInt64Array.from([right]), []);
@@ -545,26 +542,29 @@ const onnx_runner = {
         var out = await ses.run({
             "x": x,
             "left": left, "right": right,
-            "top": top, "bottom": bottom});
+            "top": top, "bottom": bottom
+        });
         return out.y;
     },
-    tta_split: async function(x, tta_level) {
+    tta_split: async function (x, tta_level) {
         const ses = await onnx_session.get_session(CONFIG.get_helper_model_path("tta_split"));
         tta_level = new ort.Tensor('int64', BigInt64Array.from([tta_level]), []);
         var out = await ses.run({
             "x": x,
-            "tta_level": tta_level});
+            "tta_level": tta_level
+        });
         return out.y;
     },
-    tta_merge: async function(x, tta_level) {
+    tta_merge: async function (x, tta_level) {
         const ses = await onnx_session.get_session(CONFIG.get_helper_model_path("tta_merge"));
         tta_level = new ort.Tensor('int64', BigInt64Array.from([tta_level]), []);
         var out = await ses.run({
             "x": x,
-            "tta_level": tta_level});
+            "tta_level": tta_level
+        });
         return out.y;
     },
-    alpha_border_padding: async function(rgb, alpha, offset) {
+    alpha_border_padding: async function (rgb, alpha, offset) {
         const ses = await onnx_session.get_session(CONFIG.get_helper_model_path("alpha_border_padding"));
         // unsqueeze
         rgb = new ort.Tensor('float32', rgb.data, [rgb.dims[1], rgb.dims[2], rgb.dims[3]]);
@@ -578,9 +578,9 @@ const onnx_runner = {
         // squeeze
         return new ort.Tensor("float32", out.y.data, [1, out.y.dims[0], out.y.dims[1], out.y.dims[2]]);
     },
-    antialias: async function(x) {
+    antialias: async function (x) {
         const ses = await onnx_session.get_session(CONFIG.get_helper_model_path("antialias"));
-        var out = await ses.run({"x": x});
+        var out = await ses.run({ "x": x });
         return out.y;
     },
 };
@@ -613,12 +613,15 @@ const onnx_runner = {
     };
 })();
 
-onmessage = async function(e) {
+onmessage = async function (e) {
     const data = e.data;
 
     if (data.type === "init") {
-        // 모델 기본 경로 설정
+        // 모델 기본 경로 및 WASM 경로 설정
         self.__MODEL_BASE__ = data.modelBase;
+        if (data.wasmPaths) {
+            ort.env.wasm.wasmPaths = data.wasmPaths;
+        }
         postMessage({ type: "ready" });
         return;
     }

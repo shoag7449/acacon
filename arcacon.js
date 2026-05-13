@@ -2427,7 +2427,7 @@ input[type=checkbox]:checked::after {
                             upModelSel.value = "cunet,art";
                             upScaleSel.value = "scale2x";
                             upNoiseSel.value = "noise3";
-                            upTileSel.value = "64";
+                            upTileSel.value = "256";
                             upGifQualitySel.value = "6";
 
                             // CUNet은 scale4x 미지원 → 동적 제한
@@ -2474,12 +2474,18 @@ input[type=checkbox]:checked::after {
                                     { r: 255, g: 255, b: 255, hex: "#ffffff", minD: Infinity } // 화이트
                                 ];
 
+                                const seenColors = new Set();
                                 const processImageData = (imgData) => {
                                     const d = imgData.data;
                                     for (let i = 0; i < d.length; i += 4) {
                                         if (d[i + 3] < 128) continue;
                                         const R = d[i], G = d[i + 1], B = d[i + 2];
-                                        for (let c of candidates) {
+                                        const rgb = (R << 16) | (G << 8) | B;
+                                        if (seenColors.has(rgb)) continue;
+                                        seenColors.add(rgb);
+
+                                        for (let j = 0; j < candidates.length; j++) {
+                                            const c = candidates[j];
                                             const dist = (R - c.r) * (R - c.r) + (G - c.g) * (G - c.g) + (B - c.b) * (B - c.b);
                                             if (dist < c.minD) c.minD = dist;
                                         }
@@ -2494,11 +2500,12 @@ input[type=checkbox]:checked::after {
                                                 eg.dec.load({
                                                     files: [],
                                                     buffers: [ab],
-                                                    oncomplete: F => {
+                                                    oncomplete: async F => {
                                                         if (F && F[0]) {
                                                             for (let f of F[0].frames) {
                                                                 const ctx = f.context || f.canvas.getContext("2d");
                                                                 processImageData(ctx.getImageData(0, 0, f.canvas.width, f.canvas.height));
+                                                                await new Promise(res => setTimeout(res, 0)); // UI 멈춤 방지
                                                             }
                                                         }
                                                         r();
