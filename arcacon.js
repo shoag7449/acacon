@@ -2119,6 +2119,7 @@ input[type=checkbox]:checked::after {
                          */
 
                         if (upscaleChk.checked && upscaleItems.length > 0) {
+                            upscaleItems.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
                             const upscaleFormContainer = createTagClass("div", "gifEditfrm");
 
                             const close_btn2 = createTagClass("button", "close-btn", null, upscaleFormContainer);
