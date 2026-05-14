@@ -1573,9 +1573,10 @@ input[type=checkbox]:checked::after {
 
                                 e.stopPropagation();
 
-                                setTimeout((popup, form, e) => {
-                                    const btn = e.target.closest('.gifEditfrmBtn') || e.target;
-                                    const btnRect = btn.getBoundingClientRect();
+                                const btn = e.target.closest('.gifEditfrmBtn') || e.target;
+                                const btnRect = btn.getBoundingClientRect();
+
+                                setTimeout((popup, btnRect) => {
                                     const popupWidth = popup.offsetWidth;
                                     const popupHeight = popup.offsetHeight;
                                     const viewW = window.innerWidth;
@@ -1604,7 +1605,7 @@ input[type=checkbox]:checked::after {
                                     popup.style.left = posX + 'px';
                                     popup.style.top = posY + 'px';
                                     popup.classList.add('visible');
-                                }, 100, popup, form, e);
+                                }, 100, popup, btnRect);
 
                                 close_btn.addEventListener('click', e => {
                                     e.stopPropagation();
@@ -1612,8 +1613,8 @@ input[type=checkbox]:checked::after {
                                 });
 
                                 const outsideClickHandler = e => {
-                                    // 바깥 클릭 시에만 닫기
-                                    if (!popup.contains(e.target)) {
+                                    // 바깥 클릭 시에만 닫기 (Shadow DOM 이벤트 리타게팅 방지)
+                                    if (!e.composedPath().includes(popup)) {
                                         popup.remove();
                                         document.removeEventListener('click', outsideClickHandler);
                                     }
@@ -2221,11 +2222,11 @@ input[type=checkbox]:checked::after {
                                     editBtn.addEventListener("click", (ev) => {
                                         ev.stopPropagation();
                                         // 기존 팝업 제거
-                                        const old = document.getElementsByClassName("gifAdjustPopup");
-                                        if (old && old[0]) old[0].remove();
+                                        const old = uiRoot.querySelectorAll(".gifAdjustPopup");
+                                        if (old && old.length > 0) old[0].remove();
 
                                         const popup = createTagClass("div", "gifAdjustPopup");
-                                        append(document.body, popup);
+                                        append(uiRoot, popup);
                                         setAttr(popup, "role", "dialog");
                                         setAttr(popup, "aria-modal", "true");
 
@@ -2237,8 +2238,9 @@ input[type=checkbox]:checked::after {
                                             popup.remove();
                                         });
 
-                                        setTimeout(() => {
-                                            const btnRect = editBtn.getBoundingClientRect();
+                                        const btnRect = editBtn.getBoundingClientRect();
+
+                                        setTimeout((popup, btnRect) => {
                                             const pw = popup.offsetWidth,
                                                 ph = popup.offsetHeight;
                                             const vw = window.innerWidth,
@@ -2252,10 +2254,10 @@ input[type=checkbox]:checked::after {
                                             popup.style.left = px + "px";
                                             popup.style.top = py + "px";
                                             popup.classList.add("visible");
-                                        }, 100);
+                                        }, 100, popup, btnRect);
 
                                         const oc = e2 => {
-                                            if (!popup.contains(e2.target) && e2.target !== editBtn) {
+                                            if (!e2.composedPath().includes(popup) && !e2.composedPath().includes(editBtn)) {
                                                 popup.remove();
                                                 document.removeEventListener("click", oc);
                                             }
