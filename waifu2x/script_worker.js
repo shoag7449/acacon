@@ -482,22 +482,24 @@ const onnx_runner = {
                 if (has_alpha) {
                     if (tta_level > 0) {
                         tile_x = await this.tta_split(tile_x, BigInt(tta_level));
-                    }
-                    var output = await model.run({ x: tile_x });
-                    var tile_y = output.y;
-                    if (tta_level > 0) {
-                        tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
+                        // WebGPU Concat 차원 불일치 방지: 배치를 개별 추론 후 재결합
+                        tile_y = await this.run_batched_individually(model, tile_x);
+                        var tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
+                    } else {
+                        var output = await model.run({ x: tile_x });
+                        var tile_y = output.y;
                     }
                     var alpha_output = await alpha_model.run({ x: tile_alpha3 });
                     var tile_alpha_y = alpha_output.y;
                 } else {
                     if (tta_level > 0) {
                         tile_x = await this.tta_split(tile_x, BigInt(tta_level));
-                    }
-                    var tile_output = await model.run({ x: tile_x });
-                    var tile_y = tile_output.y;
-                    if (tta_level > 0) {
+                        // WebGPU Concat 차원 불일치 방지: 배치를 개별 추론 후 재결합
+                        var tile_y = await this.run_batched_individually(model, tile_x);
                         tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
+                    } else {
+                        var tile_output = await model.run({ x: tile_x });
+                        var tile_y = tile_output.y;
                     }
                 }
             } else {
@@ -564,6 +566,30 @@ const onnx_runner = {
             "tta_level": tta_level
         });
         return out.y;
+    },
+    run_batched_individually: async function (model, batchedInput) {
+        // WebGPU에서 SwinUNet 등의 모델이 batch>1 텐서를 처리할 때
+        // 내부 Concat 노드에서 차원 불일치 에러가 발생하므로,
+        // 배치를 개별 텐서(batch=1)로 분리 → 각각 추론 → 결과 재결합
+        const batchSize = batchedInput.dims[0];
+        const [C, H, W] = [batchedInput.dims[1], batchedInput.dims[2], batchedInput.dims[3]];
+        const singleSize = C * H * W;
+        const results = [];
+        for (let b = 0; b < batchSize; b++) {
+            const singleData = batchedInput.data.slice(b * singleSize, (b + 1) * singleSize);
+            const singleTensor = new ort.Tensor('float32', singleData, [1, C, H, W]);
+            const singleOutput = await model.run({ x: singleTensor });
+            results.push(singleOutput.y);
+        }
+        // 개별 결과를 다시 하나의 배치 텐서로 합침
+        const outDims = results[0].dims;
+        const [outC, outH, outW] = [outDims[1], outDims[2], outDims[3]];
+        const outSingleSize = outC * outH * outW;
+        const combinedData = new Float32Array(batchSize * outSingleSize);
+        for (let b = 0; b < batchSize; b++) {
+            combinedData.set(results[b].data, b * outSingleSize);
+        }
+        return new ort.Tensor('float32', combinedData, [batchSize, outC, outH, outW]);
     },
     alpha_border_padding: async function (rgb, alpha, offset) {
         const ses = await onnx_session.get_session(CONFIG.get_helper_model_path("alpha_border_padding"));
