@@ -2421,7 +2421,7 @@ input[type=checkbox]:checked::after {
                                     }
                                     const result = await Promise.all(buffers);
                                     const editgifs = GIFS();
-                                    
+
                                     await new Promise((resolve, reject) => {
                                         editgifs.dec.load({
                                             files: [],
@@ -2448,7 +2448,7 @@ input[type=checkbox]:checked::after {
                                             onerror: reject
                                         });
                                     });
-                                    
+
                                     const zipContent = await extZip.generateAsync({ type: "blob" });
                                     createDownloadTag(createURL(zipContent), "extract.zip");
                                 } catch (e) {
@@ -2743,8 +2743,8 @@ input[type=checkbox]:checked::after {
                                 const pool = window.__waifu2xWorkers;
                                 let done = 0;
                                 const total = upscaleItems.length;
-                                const prog = (extra) => {
-                                    const p = Math.round(done / total * 100);
+                                const prog = (extra, itemFraction = 0) => {
+                                    const p = total === 0 ? 0 : Math.round((done + itemFraction) / total * 100);
                                     progressBarFill.style.clipPath = `inset(0 ${100 - p}% 0 0)`;
                                     progressTextBackground.textContent = progressTextForeground.textContent = `${done}/${total} (${p}%)` + (extra || "");
                                 };
@@ -2947,7 +2947,7 @@ input[type=checkbox]:checked::after {
                                                     const upFrame = await dispatch(frameData.imageData, globalFrameIndex);
                                                     upscaledFrames[frameData.index] = upFrame;
                                                     framesDone++;
-                                                    prog(` │ 프레임 ${framesDone}/${frameList.length}`);
+                                                    prog(` │ 프레임 ${framesDone}/${frameList.length}`, framesDone / frameList.length);
 
                                                     // 준비된 프레임들을 순서대로 즉시 인코딩하여 메모리 최적화
                                                     while (nextEncodeIndex < frameList.length && upscaledFrames[nextEncodeIndex]) {
