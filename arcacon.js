@@ -2143,6 +2143,48 @@ input[type=checkbox]:checked::after {
                                 };
                                 sizeImg.src = item.url;
                                 const btnGrp = createTagClass("div", "gifEditfrmBtnGrp", null, cell);
+                                // GIF인 경우 추출 버튼 추가
+                                if (item.extension === "gif") {
+                                    const extractBtn = createTagClass("button", "gifEditfrmBtn", null, btnGrp);
+                                    setHTML(extractBtn, "추출");
+                                    extractBtn.addEventListener("click", async () => {
+                                        const extZip = new window["JSZip"]();
+                                        const arrayBuffer = await item.tmpBlob.arrayBuffer();
+                                        const editgifs = GIFS();
+                                        const dec = editgifs.dec;
+
+                                        dec.load({
+                                            files: [],
+                                            buffers: [arrayBuffer],
+                                            oncomplete: (F) => {
+                                                const tasks = [];
+                                                F.forEach((obj, index) => {
+                                                    const frames = obj.frames;
+                                                    const folder = extZip; // 단일 파일 추출이므로 루트에 바로 넣음
+
+                                                    frames.forEach((frame, fIndex) => {
+                                                        tasks.push(new Promise(resolve => {
+                                                            frame.canvas.toBlob((blob) => {
+                                                                const filename = setFilename(fIndex, "png");
+                                                                folder.file(filename, blob);
+                                                                resolve();
+                                                            }, "image/png");
+                                                        }));
+                                                    });
+                                                });
+
+                                                Promise.all(tasks).then(async () => {
+                                                    const zipContent = await extZip.generateAsync({
+                                                        type: "blob"
+                                                    });
+                                                    createDownloadTag(createURL(zipContent), "extract.zip");
+                                                });
+                                            },
+                                            onerror: e => { console.error("Extract failed", e); }
+                                        });
+                                    });
+                                }
+
                                 const dlBtn = createTagClass("button", "gifEditfrmBtn", null, btnGrp);
                                 setHTML(dlBtn, "다운");
                                 dlBtn.addEventListener("click", () => {
@@ -2353,11 +2395,74 @@ input[type=checkbox]:checked::after {
                             const batchImg = createTagClass("img", "gifEditfrmItemImg_", null, batchCell);
                             batchImg.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAAAWVJREFUeF7t00ERAAAIhECvf2lr7AMTMODtOsrAKJpgriDYExSkIJgBDKeFFAQzgOG0kIJgBjCcFlIQzACG00IKghnAcFpIQTADGE4LKQhmAMNpIQXBDGA4LaQgmAEMp4UUBDOA4bSQgmAGMJwWUhDMAIbTQgqCGcBwWkhBMAMYTgspCGYAw2khBcEMYDgtpCCYAQynhRQEM4DhtJCCYAYwnBZSEMwAhtNCCoIZwHBaSEEwAxhOCykIZgDDaSEFwQxgOC2kIJgBDKeFFAQzgOG0kIJgBjCcFlIQzACG00IKghnAcFpIQTADGE4LKQhmAMNpIQXBDGA4LaQgmAEMp4UUBDOA4bSQgmAGMJwWUhDMAIbTQgqCGcBwWkhBMAMYTgspCGYAw2khBcEMYDgtpCCYAQynhRQEM4DhtJCCYAYwnBZSEMwAhtNCCoIZwHBaSEEwAxhOCykIZgDDaSEFwQxgOC0EC/KEzwBlGO+pQQAAAABJRU5ErkJggg==";
                             const batchName = createTagClass("div", "gifEditfrmItemInfo", null, batchCell);
-                            setHTML(batchName, "일괄<br>다운로드");
+                            setHTML(batchName, "일괄<br>작업");
                             const batchBtnGrp = createTagClass("div", "gifEditfrmBtnGrp", null, batchCell);
+
+                            // 1. 일괄 추출
+                            const batchExtractBtn = createTagClass("button", "gifEditfrmBtn", null, batchBtnGrp);
+                            setHTML(batchExtractBtn, "추출");
+                            batchExtractBtn.addEventListener("click", async () => {
+                                batchExtractBtn.disabled = true;
+                                const origText = batchExtractBtn.textContent;
+                                batchExtractBtn.textContent = "추출 중..";
+                                try {
+                                    const extZip = new window["JSZip"]();
+                                    const buffers = [];
+                                    const validItems = [];
+                                    upscaleItems.forEach(it => {
+                                        if (it.extension === "gif") {
+                                            buffers.push(it.tmpBlob.arrayBuffer());
+                                            validItems.push(it);
+                                        }
+                                    });
+                                    if (buffers.length === 0) {
+                                        alert("추출할 GIF가 없습니다.");
+                                        return;
+                                    }
+                                    const result = await Promise.all(buffers);
+                                    const editgifs = GIFS();
+                                    
+                                    await new Promise((resolve, reject) => {
+                                        editgifs.dec.load({
+                                            files: [],
+                                            buffers: result,
+                                            oncomplete: (F) => {
+                                                const tasks = [];
+                                                F.forEach((obj, index) => {
+                                                    const frames = obj.frames;
+                                                    const baseName = validItems[index].name.replace(/\.gif$/i, "");
+                                                    const folder = F.length > 1 ? extZip.folder(baseName) : extZip;
+
+                                                    frames.forEach((frame, fIndex) => {
+                                                        tasks.push(new Promise(r => {
+                                                            frame.canvas.toBlob((blob) => {
+                                                                const filename = setFilename(fIndex, "png");
+                                                                folder.file(filename, blob);
+                                                                r();
+                                                            }, "image/png");
+                                                        }));
+                                                    });
+                                                });
+                                                Promise.all(tasks).then(resolve);
+                                            },
+                                            onerror: reject
+                                        });
+                                    });
+                                    
+                                    const zipContent = await extZip.generateAsync({ type: "blob" });
+                                    createDownloadTag(createURL(zipContent), "extract.zip");
+                                } catch (e) {
+                                    console.error("Batch Extract failed", e);
+                                    alert("일괄 프레임 추출 중 오류가 발생했습니다.");
+                                } finally {
+                                    batchExtractBtn.textContent = origText;
+                                    batchExtractBtn.disabled = false;
+                                }
+                            });
+
+                            // 2. 일괄 다운로드
                             const batchDlBtn = createTagClass("button", "gifEditfrmBtn", null, batchBtnGrp);
-                            setHTML(batchDlBtn, "ZIP 다운");
-                            batchDlBtn.style.gridColumn = "1 / -1";
+                            setHTML(batchDlBtn, "다운");
                             batchDlBtn.addEventListener("click", async () => {
                                 try {
                                     upscaleItems.forEach(it => jsZip.file(it.name, it.tmpBlob));
