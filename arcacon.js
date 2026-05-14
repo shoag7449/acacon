@@ -38,7 +38,7 @@
     const MODERN_CSS_TEXT = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
-:root {
+:host {
     --primary: #4f46e5;
     --primary-hover: #4338ca;
     --danger: #ef4444;
@@ -610,20 +610,20 @@ input[type=checkbox]:checked::after {
             append(parent, e);
         return e;
     };
-    const customAlert = (e) => {
-        const existing = document.querySelector('.toast-msg');
+    const customAlert = (e, duration = 5000) => {
+        const existing = uiRoot.querySelector('.toast-msg');
         if (existing)
             existing.remove();
         const toast = createTagClass("div", "toast-msg", null);
         toast.textContent = e;
-        document.body.appendChild(toast);
+        uiRoot.appendChild(toast);
         requestAnimationFrame(() => {
             requestAnimationFrame(() => toast.classList.add("show"));
         });
         setTimeout(() => {
             toast.classList.remove("show");
             setTimeout(() => toast.remove(), 300);
-        }, 5000);
+        }, duration);
     };
     const setMinMax = (a, b, c, d) => a < b || a > c ? d : a;
     const revokURL = (e) => URL.revokeObjectURL(e);
@@ -698,12 +698,27 @@ input[type=checkbox]:checked::after {
         return 0;
     };
 
-    // CSS 적용 (내장형)
-    const style = createTag("style");
-    style.textContent = MODERN_CSS_TEXT;
-    document.head.appendChild(style);
+    // CSS 간섭을 완벽히 차단하기 위해 Shadow DOM 컨테이너 생성
+    let _uiHost = document.getElementById("arcacon-ui-host");
+    let uiRoot;
+    if (!_uiHost) {
+        _uiHost = document.createElement("div");
+        _uiHost.id = "arcacon-ui-host";
+        _uiHost.style.cssText = "position:fixed;top:0;left:0;width:0;height:0;overflow:visible;z-index:2147483647;";
+        document.documentElement.appendChild(_uiHost);
+        uiRoot = _uiHost.attachShadow({ mode: "open" });
 
-    let alert_tag = document.getElementById(F366C_STR);
+        const style = document.createElement("style");
+        // Shadow DOM 내부는 외부 CSS의 간섭을 받지 않음. 모든 요소에 대해 box-sizing 명시.
+        style.textContent = MODERN_CSS_TEXT + "\n * { box-sizing: border-box; }";
+        uiRoot.appendChild(style);
+
+        window._arcaconUiRoot = uiRoot;
+    } else {
+        uiRoot = window._arcaconUiRoot || _uiHost.shadowRoot;
+    }
+
+    let alert_tag = uiRoot.getElementById ? uiRoot.getElementById(F366C_STR) : uiRoot.querySelector("#" + F366C_STR);
 
     if (!alert_tag) {
         alert_tag = createTagClass("div", "noticefrm");
@@ -711,7 +726,7 @@ input[type=checkbox]:checked::after {
 
         createTagClass("span", "noticefrm-text", null, alert_tag);
 
-        insertBf(document.body, alert_tag);
+        insertBf(uiRoot, alert_tag);
     } else {
         // 이전 실행에서 남은 "압축파일" 링크 제거
         const oldLink = alert_tag.querySelector('.download');
@@ -856,7 +871,7 @@ input[type=checkbox]:checked::after {
     button3.style.boxShadow = "0 4px 12px rgba(16, 185, 129, 0.3)";
     const button2 = createTagClass("button", "mainfrmBtn2", "취소", form);
 
-    append(document.body, formContainer);
+    append(uiRoot, formContainer);
 
     // alert_tag(noticefrm) 오른쪽에 설정 버튼 추가
     // 기존 설정 버튼이 있으면 제거 후 새로 생성
@@ -888,8 +903,15 @@ input[type=checkbox]:checked::after {
 
     // 변환 버튼을 누를 경우 
     const performTaskLogic = (isSelectMode) => {
-        if (localStorage.getItem(F366C_STR) != 1)
-            customAlert('좌측 상단의 흰색 상태 바의 ⚙️ 버튼을 클릭하면 옵션 창을 열 수 있습니다.\n\n' + '1. 아카콘 다운로드 가능.\n' + '2. 디시콘 다운로드 가능.\n' + '3. 개드립콘 다운로드 가능.\n' + '4. 인벤스티커 다운로드 가능.');
+        if (isSelectMode) {
+            customAlert("다운로드할 이미지를 클릭하여 선택하세요.", 20000);
+        } else if (localStorage.getItem(F366C_STR) != 1) {
+            customAlert('좌측 상단의 흰색 상태 바의 ⚙️ 버튼을 클릭하면 옵션 창을 열 수 있습니다.\n\n' +
+                '1. 아카콘 다운로드 가능.\n' +
+                '2. 디시콘 다운로드 가능.\n' +
+                '3. 개드립콘 다운로드 가능.\n' +
+                '4. 인벤스티커 다운로드 가능.');
+        }
 
         saveSettings(!isSelectMode && 1);
         (async () => {
@@ -1533,15 +1555,15 @@ input[type=checkbox]:checked::after {
                             // gif 편집 폼을 만든다.
                             const makeAdjustPopup = (e, f) => {
                                 // 팝업 프레임 함수
-                                const apopup = document.getElementsByClassName("gifAdjustPopup");
+                                const apopup = uiRoot.querySelectorAll(".gifAdjustPopup");
 
                                 if (apopup && apopup[0])
                                     apopup[0].remove();
 
                                 const popup = createTagClass("div", "gifAdjustPopup");
 
-                                // transform이 있는 부모 안에서는 position:fixed가 깨지므로 body에 직접 추가
-                                append(document.body, popup);
+                                // transform이 있는 부모 안에서는 position:fixed가 깨지므로 루트에 직접 추가
+                                append(uiRoot, popup);
                                 setAttr(popup, "role", "dialog");
                                 setAttr(popup, "aria-modal", "true");
 
@@ -2087,7 +2109,7 @@ input[type=checkbox]:checked::after {
                                 append(form, item);
                             });
 
-                            append(document.body, form);
+                            append(uiRoot, form);
                         }
 
                         /*
@@ -2416,7 +2438,7 @@ input[type=checkbox]:checked::after {
                                         }
                                     });
                                     if (buffers.length === 0) {
-                                        alert("추출할 GIF가 없습니다.");
+                                        customAlert("추출할 GIF가 없습니다.");
                                         return;
                                     }
                                     const result = await Promise.all(buffers);
@@ -2453,7 +2475,7 @@ input[type=checkbox]:checked::after {
                                     createDownloadTag(createURL(zipContent), "extract.zip");
                                 } catch (e) {
                                     console.error("Batch Extract failed", e);
-                                    alert("일괄 프레임 추출 중 오류가 발생했습니다.");
+                                    customAlert("일괄 프레임 추출 중 오류가 발생했습니다.");
                                 } finally {
                                     batchExtractBtn.textContent = origText;
                                     batchExtractBtn.disabled = false;
@@ -2489,7 +2511,7 @@ input[type=checkbox]:checked::after {
                                 tt.style.cssText = "position:fixed;background:rgba(0,0,0,0.85);color:white;padding:8px 12px;border-radius:6px;font-size:12px;white-space:pre-wrap;width:max-content;min-width:150px;max-width:320px;text-align:left;line-height:1.4;display:none;z-index:2147483647;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);";
 
                                 help.addEventListener("mouseenter", () => {
-                                    document.body.appendChild(tt);
+                                    uiRoot.appendChild(tt);
                                     const rect = help.getBoundingClientRect();
                                     tt.style.display = "block";
                                     const ttRect = tt.getBoundingClientRect();
@@ -2670,7 +2692,7 @@ input[type=checkbox]:checked::after {
                             upscaleStartButton.style.cssText = "width:100%;background:linear-gradient(135deg,#8b5cf6,#6d28d9);";
                             append(upscaleOptionsPanel, upscaleStartButton);
                             append(upscaleFormContainer, upscaleOptionsPanel);
-                            append(document.body, upscaleFormContainer);
+                            append(uiRoot, upscaleFormContainer);
 
                             let isUpscaleCancelled = false;
                             let cancelUpscaleTasks = null;
@@ -3029,6 +3051,7 @@ input[type=checkbox]:checked::after {
                 // End of executeDownloadsAndFinish
 
                 if (isSelectMode) {
+                    // 이전 버전의 잔재(wrapper)가 남아있을 수 있으므로 클린업
                     document.querySelectorAll(".arcacon-wrapper").forEach(wrapper => {
                         const chk = wrapper.querySelector("input[type='checkbox']");
                         if (chk)
@@ -3037,12 +3060,12 @@ input[type=checkbox]:checked::after {
                         children.forEach(child => wrapper.parentNode.insertBefore(child, wrapper));
                         wrapper.remove();
                     });
-                    const oldFloatingBtn = document.getElementById("arcacon-floating-btn");
+                    const oldFloatingBtn = uiRoot.querySelector("#arcacon-floating-btn");
                     if (oldFloatingBtn)
                         oldFloatingBtn.remove();
 
                     setStatus(`이미지 ${img_count} 개를 발견했습니다. 선택 대기 중.`);
-                    const floatingBtn = createTagClass("button", "mainfrmBtn1", "선택 다운로드", document.body);
+                    const floatingBtn = createTagClass("button", "mainfrmBtn1", "선택 다운로드", uiRoot);
                     floatingBtn.id = "arcacon-floating-btn";
                     floatingBtn.style.position = "fixed";
                     floatingBtn.style.top = "20px";
@@ -3062,70 +3085,77 @@ input[type=checkbox]:checked::after {
                         if (!el)
                             return;
 
-                        if (el.parentNode) {
-                            const wrapper = createTagClass("div", "arcacon-wrapper", null);
-                            el.parentNode.insertBefore(wrapper, el);
-                            wrapper.style.position = "relative";
-                            wrapper.style.display = "inline-block";
-                            wrapper.appendChild(el);
+                        // DOM 구조 변경을 피하기 위해 인라인 스타일로 선택 효과 부여
+                        const origOutline = el.style.outline;
+                        const origOutlineOffset = el.style.outlineOffset;
+                        const origFilter = el.style.filter;
+                        const origCursor = el.style.cursor;
+                        const origTransition = el.style.transition;
 
-                            const chk = createControl("checkbox", wrapper, true);
-                            chk.style.position = "absolute";
-                            chk.style.top = "5px";
-                            chk.style.left = "5px";
-                            chk.style.zIndex = "10";
-                            chk.style.transform = "scale(2.5)";
-                            chk.style.margin = "0";
-                            chk.style.cursor = "pointer";
-                            chk.style.boxShadow = "0 0 5px rgba(0,0,0,0.5)";
+                        el.style.cursor = "pointer";
+                        el.style.transition = "all 0.2s ease-in-out";
 
-                            const toggleSelect = () => {
-                                if (chk.checked)
-                                    selectedIdxs.add(emoObj.index);
-                                else
-                                    selectedIdxs.delete(emoObj.index);
+                        const toggleSelect = () => {
+                            if (selectedIdxs.has(emoObj.index)) {
+                                el.style.outline = "4px solid #10b981";
+                                el.style.outlineOffset = "-4px";
+                                el.style.filter = "brightness(0.7) drop-shadow(0 0 8px rgba(16,185,129,0.8))";
+                            } else {
+                                el.style.outline = origOutline;
+                                el.style.outlineOffset = origOutlineOffset;
+                                el.style.filter = origFilter;
+                            }
 
-                                if (selectedIdxs.size > 0) {
-                                    floatingBtn.style.display = "block";
-                                    floatingBtn.textContent = `선택 다운로드 (${selectedIdxs.size})`;
-                                } else {
-                                    floatingBtn.style.display = "none";
-                                }
-                            };
+                            if (selectedIdxs.size > 0) {
+                                floatingBtn.style.display = "block";
+                                floatingBtn.textContent = `선택 다운로드 (${selectedIdxs.size})`;
+                            } else {
+                                floatingBtn.style.display = "none";
+                            }
+                        };
 
-                            chk.addEventListener("change", toggleSelect);
+                        const clickHandler = (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (selectedIdxs.has(emoObj.index)) {
+                                selectedIdxs.delete(emoObj.index);
+                            } else {
+                                selectedIdxs.add(emoObj.index);
+                            }
+                            toggleSelect();
+                        };
 
-                            el.style.cursor = "pointer";
-                            el.addEventListener("click", (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                chk.checked = !chk.checked;
-                                toggleSelect();
-                            });
-                        }
+                        el.addEventListener("click", clickHandler);
+
+                        // 나중에 스타일 및 이벤트 원상 복구를 위해 저장
+                        el._arcaconSelectHandler = clickHandler;
+                        el._arcaconOrigStyles = { origOutline, origOutlineOffset, origFilter, origCursor, origTransition };
                     });
 
                     floatingBtn.addEventListener("click", () => {
                         floatingBtn.remove();
                         alert_tag.style.display = "flex";
 
-                        document.querySelectorAll(".arcacon-wrapper").forEach(wrapper => {
-                            const chk = wrapper.querySelector("input[type='checkbox']");
-                            if (chk)
-                                chk.remove();
-                            const children = Array.from(wrapper.childNodes);
-                            children.forEach(child => wrapper.parentNode.insertBefore(child, wrapper));
-                            wrapper.remove();
+                        // 선택 모드 종료 시, 원본 스타일 및 이벤트 리스너 복구
+                        urls.forEach(emoObj => {
+                            const el = emoObj.element;
+                            if (el && el._arcaconSelectHandler) {
+                                el.removeEventListener("click", el._arcaconSelectHandler);
+                                if (el._arcaconOrigStyles) {
+                                    el.style.outline = el._arcaconOrigStyles.origOutline;
+                                    el.style.outlineOffset = el._arcaconOrigStyles.origOutlineOffset;
+                                    el.style.filter = el._arcaconOrigStyles.origFilter;
+                                    el.style.cursor = el._arcaconOrigStyles.origCursor;
+                                    el.style.transition = el._arcaconOrigStyles.origTransition;
+                                }
+                                delete el._arcaconSelectHandler;
+                                delete el._arcaconOrigStyles;
+                            }
                         });
 
                         const selectedUrls = urls.filter(u => selectedIdxs.has(u.index));
                         if (selectedUrls.length > 0) {
                             setStatus(`선택된 이미지 ${selectedUrls.length} 개 다운로드 준비 중...`);
-                            urls.forEach(emoObj => {
-                                const el = emoObj.element;
-                                if (el)
-                                    el.style.cursor = "";
-                            });
                             executeDownloadsAndFinish(selectedUrls);
                         } else {
                             setStatus("선택된 이미지가 없습니다.");
