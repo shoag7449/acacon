@@ -2469,7 +2469,7 @@ input[type=checkbox]:checked::after {
                             // 기본값: CUNet Art, 2x, 최강, 256
                             modelSelect.value = "cunet,art";
                             scaleSelect.value = "scale2x";
-                            noiseSelect.value = "noise1";
+                            noiseSelect.value = "noise3";
                             tileSelect.value = "auto";
                             gifQualitySelect.value = "1";
                             computeModeSelect.value = navigator.gpu ? "webgpu" : "wasm";
