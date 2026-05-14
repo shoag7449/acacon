@@ -1,12 +1,4 @@
 (() => {
-    // 웹사이트의 기본 메서드 무력화(Monkey Patching) 방어 및 복구
-    const _recoveryIframe = document.createElement('iframe');
-    _recoveryIframe.style.display = 'none';
-    document.documentElement.appendChild(_recoveryIframe);
-
-    window.alert = _recoveryIframe.contentWindow.alert;
-    Element.prototype.remove = _recoveryIframe.contentWindow.Element.prototype.remove;
-    Node.prototype.removeChild = _recoveryIframe.contentWindow.Node.prototype.removeChild;
     /*
         만든사람: https://github.com/spspwl12
 
@@ -22,6 +14,14 @@
         8. 이미 다운로드한 이모티콘에 색상을 입혀 시각적으로 구분
         9. 모바일 다운로드 (비공식)
     */
+
+    const _recoveryIframe = document.createElement('iframe');
+    _recoveryIframe.style.display = 'none';
+    document.documentElement.appendChild(_recoveryIframe);
+
+    window.alert = _recoveryIframe.contentWindow.alert;
+    Element.prototype.remove = _recoveryIframe.contentWindow.Element.prototype.remove;
+    Node.prototype.removeChild = _recoveryIframe.contentWindow.Node.prototype.removeChild;
 
     const PROXY_SERV_URL = "https://jfkskw.duckdns.org:17875/proxy?url=%%%ENCODEURL%%%"; // 디시콘, 개드립콘 프록시 서버 설정
     const JS_ZIP_URL = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"; // 압축 파일 관련 모듈
