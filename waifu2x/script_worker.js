@@ -481,10 +481,7 @@ const onnx_runner = {
             if (single_color == null) {
                 if (has_alpha) {
                     if (tta_level > 0) {
-                        tile_x = await this.tta_split(tile_x, BigInt(tta_level));
-                        // WebGPU Concat 차원 불일치 방지: 배치를 개별 추론 후 재결합
-                        tile_y = await this.run_batched_individually(model, tile_x);
-                        var tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
+                        var tile_y = await this.run_with_tta(model, tile_x, tta_level);
                     } else {
                         var output = await model.run({ x: tile_x });
                         var tile_y = output.y;
@@ -493,10 +490,7 @@ const onnx_runner = {
                     var tile_alpha_y = alpha_output.y;
                 } else {
                     if (tta_level > 0) {
-                        tile_x = await this.tta_split(tile_x, BigInt(tta_level));
-                        // WebGPU Concat 차원 불일치 방지: 배치를 개별 추론 후 재결합
-                        var tile_y = await this.run_batched_individually(model, tile_x);
-                        tile_y = await this.tta_merge(tile_y, BigInt(tta_level));
+                        var tile_y = await this.run_with_tta(model, tile_x, tta_level);
                     } else {
                         var tile_output = await model.run({ x: tile_x });
                         var tile_y = tile_output.y;
@@ -558,38 +552,63 @@ const onnx_runner = {
         });
         return out.y;
     },
-    tta_merge: async function (x, tta_level) {
-        const ses = await onnx_session.get_session(CONFIG.get_helper_model_path("tta_merge"));
-        tta_level = new ort.Tensor('int64', BigInt64Array.from([tta_level]), []);
-        var out = await ses.run({
-            "x": x,
-            "tta_level": tta_level
-        });
-        return out.y;
+    // ── 순수 JS TTA 구현 (WebGPU 호환) ──
+    // nunif/utils/tta.py 기반: 회전/반전 조합으로 다각도 추론 후 평균
+    run_with_tta: async function (model, tile_x, tta_level) {
+        // tile_x: [1, C, H, W], tta_level: 2 | 4 | 8
+        const augCount = tta_level;
+        let resultSum = null;
+        let outC = 0, outH = 0, outW = 0;
+        for (let augIdx = 0; augIdx < augCount; augIdx++) {
+            const augmented = this.tta_augment(tile_x, augIdx);
+            const output = await model.run({ x: augmented });
+            const deaugmented = this.tta_deaugment(output.y, augIdx);
+            if (!resultSum) {
+                outC = deaugmented.dims[1];
+                outH = deaugmented.dims[2];
+                outW = deaugmented.dims[3];
+                resultSum = new Float32Array(deaugmented.data.length);
+            }
+            for (let i = 0; i < resultSum.length; i++) resultSum[i] += deaugmented.data[i];
+        }
+        const inv = 1.0 / augCount;
+        for (let i = 0; i < resultSum.length; i++) resultSum[i] *= inv;
+        return new ort.Tensor('float32', resultSum, [1, outC, outH, outW]);
     },
-    run_batched_individually: async function (model, batchedInput) {
-        // WebGPU에서 SwinUNet 등의 모델이 batch>1 텐서를 처리할 때
-        // 내부 Concat 노드에서 차원 불일치 에러가 발생하므로,
-        // 배치를 개별 텐서(batch=1)로 분리 → 각각 추론 → 결과 재결합
-        const batchSize = batchedInput.dims[0];
-        const [C, H, W] = [batchedInput.dims[1], batchedInput.dims[2], batchedInput.dims[3]];
-        const singleSize = C * H * W;
-        const results = [];
-        for (let b = 0; b < batchSize; b++) {
-            const singleData = batchedInput.data.slice(b * singleSize, (b + 1) * singleSize);
-            const singleTensor = new ort.Tensor('float32', singleData, [1, C, H, W]);
-            const singleOutput = await model.run({ x: singleTensor });
-            results.push(singleOutput.y);
-        }
-        // 개별 결과를 다시 하나의 배치 텐서로 합침
-        const outDims = results[0].dims;
-        const [outC, outH, outW] = [outDims[1], outDims[2], outDims[3]];
-        const outSingleSize = outC * outH * outW;
-        const combinedData = new Float32Array(batchSize * outSingleSize);
-        for (let b = 0; b < batchSize; b++) {
-            combinedData.set(results[b].data, b * outSingleSize);
-        }
-        return new ort.Tensor('float32', combinedData, [batchSize, outC, outH, outW]);
+    tta_augment: function (x, augIndex) {
+        // 0:identity 1:hflip 2:vflip 3:hvflip 4:transpose 5:T+hflip 6:T+vflip 7:T+hvflip
+        const [B, C, H, W] = x.dims;
+        const doH = augIndex & 1, doV = augIndex & 2, doT = augIndex & 4;
+        const oH = doT ? W : H, oW = doT ? H : W;
+        const out = new Float32Array(B * C * oH * oW);
+        for (let b = 0; b < B; b++)
+            for (let c = 0; c < C; c++)
+                for (let h = 0; h < H; h++)
+                    for (let w = 0; w < W; w++) {
+                        let dh = doV ? H - 1 - h : h, dw = doH ? W - 1 - w : w;
+                        let fh, fw;
+                        if (doT) { fh = dw; fw = dh; } else { fh = dh; fw = dw; }
+                        out[b * C * oH * oW + c * oH * oW + fh * oW + fw] = x.data[b * C * H * W + c * H * W + h * W + w];
+                    }
+        return new ort.Tensor('float32', out, [B, C, oH, oW]);
+    },
+    tta_deaugment: function (y, augIndex) {
+        // 역변환: 4-7은 먼저 flip 후 transpose (순서 반전)
+        const [B, C, H, W] = y.dims;
+        const doH = augIndex & 1, doV = augIndex & 2, doT = augIndex & 4;
+        const oH = doT ? W : H, oW = doT ? H : W;
+        const out = new Float32Array(B * C * oH * oW);
+        for (let b = 0; b < B; b++)
+            for (let c = 0; c < C; c++)
+                for (let h = 0; h < H; h++)
+                    for (let w = 0; w < W; w++) {
+                        let dh, dw;
+                        if (doT) { dh = w; dw = h; } else { dh = h; dw = w; }
+                        if (doV) dh = oH - 1 - dh;
+                        if (doH) dw = oW - 1 - dw;
+                        out[b * C * oH * oW + c * oH * oW + dh * oW + dw] = y.data[b * C * H * W + c * H * W + h * W + w];
+                    }
+        return new ort.Tensor('float32', out, [B, C, oH, oW]);
     },
     alpha_border_padding: async function (rgb, alpha, offset) {
         const ses = await onnx_session.get_session(CONFIG.get_helper_model_path("alpha_border_padding"));
