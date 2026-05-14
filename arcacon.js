@@ -955,7 +955,7 @@ input[type=checkbox]:checked::after {
             // GIFS 변수가 없을 경우 ( GIFS 이 로드가 안된경우 )
             if ((gifEditChk.checked || upscaleChk.checked) && checkFunc("GIFS")) {
                 // gif 프레임 추출할 때 잔상 남는 버그 제거
-                await loadJavaScript(GIF_EDIT_URL, (text) => text.split("if(!c||f[d*s+p]!==h)").join("if(true)"));
+                await loadJavaScript(GIF_EDIT_URL);
 
                 // 그래도 GIFS 변수가 없을 경우
                 if (checkFunc("GIFS")) {
