@@ -1651,6 +1651,7 @@ input[type=checkbox]:checked::after {
                             close_btn.addEventListener('click', e => {
                                 e.stopPropagation();
                                 form.remove();
+                                uiRoot.querySelectorAll(".gifAdjustPopup").forEach(e => e.remove());
                             });
 
                             form.addEventListener('scroll', () => {
@@ -2157,7 +2158,10 @@ input[type=checkbox]:checked::after {
 
                             const close_btn2 = createTagClass("button", "close-btn", null, upscaleFormContainer);
                             setHTML(close_btn2, "&times;");
-                            close_btn2.addEventListener('click', () => upscaleFormContainer.remove());
+                            close_btn2.addEventListener('click', () => {
+                                upscaleFormContainer.remove();
+                                uiRoot.querySelectorAll(".gifAdjustPopup").forEach(e => e.remove());
+                            });
                             upscaleFormContainer.addEventListener('scroll', () => {
                                 close_btn2.style.top = (upscaleFormContainer.scrollTop + 16) + 'px';
                             });
