@@ -610,6 +610,25 @@ input[type=checkbox]:checked::after {
             append(parent, e);
         return e;
     };
+    const attachTooltip = (parentElem, tooltipText) => {
+        const help = createTagClass("span", "", "?", parentElem);
+        help.style.cssText = "display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#cbd5e1;color:white;font-size:10px;font-weight:bold;cursor:help;margin-left:6px;";
+        const tt = createTagClass("div", "", tooltipText);
+        tt.style.cssText = "position:fixed;background:rgba(0,0,0,0.85);color:white;padding:8px 12px;border-radius:6px;font-size:12px;white-space:pre-wrap;width:max-content;min-width:150px;max-width:320px;text-align:left;line-height:1.4;display:none;z-index:2147483647;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);";
+
+        help.addEventListener("mouseenter", () => {
+            uiRoot.appendChild(tt);
+            const rect = help.getBoundingClientRect();
+            tt.style.display = "block";
+            const ttRect = tt.getBoundingClientRect();
+            tt.style.left = Math.max(10, rect.left + rect.width / 2 - ttRect.width / 2) + "px";
+            tt.style.top = Math.max(10, rect.top - ttRect.height - 8) + "px";
+        });
+        help.addEventListener("mouseleave", () => {
+            tt.style.display = "none";
+            if (tt.parentNode) tt.parentNode.removeChild(tt);
+        });
+    };
     const customAlert = (e, duration = 5000) => {
         const existing = uiRoot.querySelector('.toast-msg');
         if (existing)
@@ -1800,7 +1819,9 @@ input[type=checkbox]:checked::after {
 
                                             // 속도 조절 영역
                                             const popup_row1 = createTagClass("div", "popup-row", null, popup);
-                                            const checkbox1 = createControl("checkbox", createTagHTML("label", "속도 변경", popup_row1), true);
+                                            const lbl_c1 = createTagHTML("label", "속도 변경", popup_row1);
+                                            const checkbox1 = createControl("checkbox", lbl_c1, true);
+                                            attachTooltip(lbl_c1, "GIF의 재생 속도를 변경합니다.\n퍼센트가 높을수록 빨라지고 낮을수록 느려집니다.");
                                             const lbl1 = createTagHTML("label", "", popup_row1);
                                             const range1 = createControl("range", lbl1);
                                             const vlbl1 = createTagHTML("div", "100%", lbl1);
@@ -1808,7 +1829,9 @@ input[type=checkbox]:checked::after {
 
                                             // 프레임 스킵 영역
                                             const popup_row2 = createTagClass("div", "popup-row", null, popup);
-                                            const checkbox2 = createControl("checkbox", createTagHTML("label", "프레임 스킵", popup_row2), true);
+                                            const lbl_c2 = createTagHTML("label", "프레임 스킵", popup_row2);
+                                            const checkbox2 = createControl("checkbox", lbl_c2, true);
+                                            attachTooltip(lbl_c2, "지정한 개수만큼 프레임을 건너뛰고 제거합니다.\n용량을 크게 줄일 수 있지만 뚝뚝 끊기게 보일 수 있습니다.");
                                             const textbox2 = createControl("text", createTagHTML("label", "건너뛸 수: ", popup_row2));
                                             textbox2.addEventListener('input', function () {
                                                 this.value = this.value.replace(/[^0-9]/g, '');
@@ -1820,31 +1843,40 @@ input[type=checkbox]:checked::after {
 
                                             // 밝기, 샤픈 영역
                                             const popup_row3 = createTagClass("div", "popup-row", null, popup);
-                                            const checkbox3 = createControl("checkbox", createTagHTML("label", "밝기 조절", popup_row3), true);
+                                            const lbl_c3 = createTagHTML("label", "밝기 조절", popup_row3);
+                                            const checkbox3 = createControl("checkbox", lbl_c3, true);
+                                            attachTooltip(lbl_c3, "전체 프레임의 밝기를 조절합니다.\n100%가 원본 밝기입니다.");
                                             const lbl3 = createTagHTML("label", "", popup_row3);
                                             const range3 = createControl("range", lbl3);
                                             const vlbl3 = createTagHTML("div", "100%", lbl3);
 
-                                            const checkbox4 = createControl("checkbox", createTagHTML("label", "샤픈 조절", popup_row3), true);
+                                            const lbl_c4 = createTagHTML("label", "샤픈 조절", popup_row3);
+                                            const checkbox4 = createControl("checkbox", lbl_c4, true);
+                                            attachTooltip(lbl_c4, "이미지의 경계선을 뚜렷하게(선명하게) 만듭니다.\n수치가 높을수록 거칠어질 수 있습니다.");
                                             const lbl4 = createTagHTML("label", "", popup_row3);
                                             const range4 = createControl("range", lbl4);
                                             const vlbl4 = createTagHTML("div", "100%", lbl4);
 
                                             // 최적화 영역
                                             const popup_row4 = createTagClass("div", "popup-row", null, popup);
-                                            const checkbox5 = createControl("checkbox", createTagHTML("label", "투명도 최적화", popup_row4), true);
+                                            const lbl_c5 = createTagHTML("label", "투명도 최적화", popup_row4);
+                                            const checkbox5 = createControl("checkbox", lbl_c5, true);
+                                            attachTooltip(lbl_c5, "변화가 없는 픽셀을 투명하게 처리하여 용량을 줄입니다.\n수치가 높을수록 용량은 줄어드나 화질이 떨어질 수 있습니다. (권장: 3%)");
                                             const lbl5 = createTagHTML("label", "", popup_row4);
                                             const range5 = createControl("range", lbl5);
                                             const vlbl5 = createTagHTML("div", "3%", lbl5);
 
-                                            const checkbox6 = createControl("checkbox", createTagHTML("label", "색상 최적화", popup_row4), true);
+                                            const lbl_c6 = createTagHTML("label", "색상 최적화", popup_row4);
+                                            const checkbox6 = createControl("checkbox", lbl_c6, true);
+                                            attachTooltip(lbl_c6, "색상 양자화 품질을 설정하여 용량을 줄입니다.\n숫자가 클수록 용량이 줄지만 화질이 떨어집니다. (기본: 6)");
                                             const lbl6 = createTagHTML("label", "", popup_row4);
                                             const range6 = createControl("range", lbl6);
                                             const vlbl6 = createTagHTML("div", "6", lbl6);
 
                                             // 기타 옵션 영역
                                             const popup_row5 = createTagClass("div", "popup-row", null, popup);
-                                            createTagHTML("label", "기타 옵션", popup_row5);
+                                            const lbl_c7 = createTagHTML("label", "기타 옵션", popup_row5);
+                                            attachTooltip(lbl_c7, "GIF의 모든 프레임을 한 장의 이미지(스프라이트 시트)로 병합합니다.\n가로(열)와 세로(행) 개수를 지정할 수 있으며, 빈칸이면 자동으로 계산됩니다.");
 
                                             const spriteColsBox = createControl("text", createTagHTML("label", "가로(열): ", popup_row5));
                                             spriteColsBox.placeholder = "자동";
@@ -2266,7 +2298,9 @@ input[type=checkbox]:checked::after {
 
                                         // 속도
                                         const pr1 = createTagClass("div", "popup-row", null, popup);
-                                        const c1 = createControl("checkbox", createTagHTML("label", "속도 변경", pr1), true);
+                                        const lbl_c1 = createTagHTML("label", "속도 변경", pr1);
+                                        const c1 = createControl("checkbox", lbl_c1, true);
+                                        attachTooltip(lbl_c1, "GIF의 재생 속도를 변경합니다.\n퍼센트가 높을수록 빨라지고 낮을수록 느려집니다.");
                                         const l1 = createTagHTML("label", "", pr1);
                                         const r1 = createControl("range", l1);
                                         const v1 = createTagHTML("div", "100%", l1);
@@ -2279,7 +2313,9 @@ input[type=checkbox]:checked::after {
 
                                         // 프레임 스킵
                                         const pr2 = createTagClass("div", "popup-row", null, popup);
-                                        const c2 = createControl("checkbox", createTagHTML("label", "프레임 스킵", pr2), true);
+                                        const lbl_c2 = createTagHTML("label", "프레임 스킵", pr2);
+                                        const c2 = createControl("checkbox", lbl_c2, true);
+                                        attachTooltip(lbl_c2, "지정한 개수만큼 프레임을 건너뛰고 제거합니다.\n용량을 크게 줄일 수 있지만 뚝뚝 끊기게 보일 수 있습니다.");
                                         const t2 = createControl("text", createTagHTML("label", "건너뛸 수: ", pr2));
                                         t2.addEventListener("input", function () {
                                             this.value = this.value.replace(/[^0-9]/g, "");
@@ -2291,7 +2327,9 @@ input[type=checkbox]:checked::after {
 
                                         // 밝기 / 샤픈
                                         const pr3 = createTagClass("div", "popup-row", null, popup);
-                                        const c3 = createControl("checkbox", createTagHTML("label", "밝기 조절", pr3), true);
+                                        const lbl_c3 = createTagHTML("label", "밝기 조절", pr3);
+                                        const c3 = createControl("checkbox", lbl_c3, true);
+                                        attachTooltip(lbl_c3, "전체 프레임의 밝기를 조절합니다.\n100%가 원본 밝기입니다.");
                                         const l3 = createTagHTML("label", "", pr3);
                                         const r3 = createControl("range", l3);
                                         const v3 = createTagHTML("div", "100%", l3);
@@ -2301,7 +2339,9 @@ input[type=checkbox]:checked::after {
                                             setHTML(v3, this.value + "%");
                                         };
 
-                                        const c4 = createControl("checkbox", createTagHTML("label", "샤픈 조절", pr3), true);
+                                        const lbl_c4 = createTagHTML("label", "샤픈 조절", pr3);
+                                        const c4 = createControl("checkbox", lbl_c4, true);
+                                        attachTooltip(lbl_c4, "이미지의 경계선을 뚜렷하게(선명하게) 만듭니다.\n수치가 높을수록 거칠어질 수 있습니다.");
                                         const l4 = createTagHTML("label", "", pr3);
                                         const r4 = createControl("range", l4);
                                         const v4 = createTagHTML("div", "100%", l4);
@@ -2313,7 +2353,9 @@ input[type=checkbox]:checked::after {
 
                                         // 최적화
                                         const pr4 = createTagClass("div", "popup-row", null, popup);
-                                        const c5 = createControl("checkbox", createTagHTML("label", "투명도 최적화", pr4), true);
+                                        const lbl_c5 = createTagHTML("label", "투명도 최적화", pr4);
+                                        const c5 = createControl("checkbox", lbl_c5, true);
+                                        attachTooltip(lbl_c5, "변화가 없는 픽셀을 투명하게 처리하여 용량을 줄입니다.\n수치가 높을수록 용량은 줄어드나 화질이 떨어질 수 있습니다. (권장: 3%)");
                                         const l5 = createTagHTML("label", "", pr4);
                                         const r5 = createControl("range", l5);
                                         const v5 = createTagHTML("div", "3%", l5);
@@ -2323,7 +2365,9 @@ input[type=checkbox]:checked::after {
                                             setHTML(v5, this.value + "%");
                                         };
 
-                                        const c6 = createControl("checkbox", createTagHTML("label", "색상 최적화", pr4), true);
+                                        const lbl_c6 = createTagHTML("label", "색상 최적화", pr4);
+                                        const c6 = createControl("checkbox", lbl_c6, true);
+                                        attachTooltip(lbl_c6, "색상 양자화 품질을 설정하여 용량을 줄입니다.\n숫자가 클수록 용량이 줄지만 화질이 떨어집니다. (기본: 6)");
                                         const l6 = createTagHTML("label", "", pr4);
                                         const r6 = createControl("range", l6);
                                         const v6 = createTagHTML("div", "6", l6);
@@ -2507,25 +2551,7 @@ input[type=checkbox]:checked::after {
                             upscaleOptionsTitle.style.cssText = "font-weight:600;font-size:14px;margin-bottom:4px;";
                             append(upscaleOptionsPanel, upscaleOptionsTitle);
 
-                            const attachTooltip = (parentElem, tooltipText) => {
-                                const help = createTagClass("span", "", "?", parentElem);
-                                help.style.cssText = "display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#cbd5e1;color:white;font-size:10px;font-weight:bold;cursor:help;";
-                                const tt = createTagClass("div", "", tooltipText);
-                                tt.style.cssText = "position:fixed;background:rgba(0,0,0,0.85);color:white;padding:8px 12px;border-radius:6px;font-size:12px;white-space:pre-wrap;width:max-content;min-width:150px;max-width:320px;text-align:left;line-height:1.4;display:none;z-index:2147483647;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);";
 
-                                help.addEventListener("mouseenter", () => {
-                                    uiRoot.appendChild(tt);
-                                    const rect = help.getBoundingClientRect();
-                                    tt.style.display = "block";
-                                    const ttRect = tt.getBoundingClientRect();
-                                    tt.style.left = Math.max(10, rect.left + rect.width / 2 - ttRect.width / 2) + "px";
-                                    tt.style.top = Math.max(10, rect.top - ttRect.height - 8) + "px";
-                                });
-                                help.addEventListener("mouseleave", () => {
-                                    tt.style.display = "none";
-                                    if (tt.parentNode) tt.parentNode.removeChild(tt);
-                                });
-                            };
 
                             const mkRow = (parent, label, options, width, tooltip) => {
                                 const row = createTagClass("div", "selLbl");
