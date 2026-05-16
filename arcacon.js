@@ -806,16 +806,16 @@ input[type=checkbox]:checked::after {
     const form = createTag("div", formContainer);
 
     const gifConvChk = makeChkbox(form, "GIF 변환");
-    attachTooltip(gifConvChk.parentElement.querySelector(".mainfrmSpan"), "MP4(동영상) 파일을 GIF로 자동 변환합니다.");
+    attachTooltip(gifConvChk.parentElement.querySelector(".mainfrmSpan"), "MP4, WebM 등 동영상 파일을 GIF로 자동 변환합니다.");
     
     const pngConvChk = makeChkbox(form, "PNG 변환");
-    attachTooltip(pngConvChk.parentElement.querySelector(".mainfrmSpan"), "WebP 등 기타 포맷을 호환성이 높은 PNG로 통일합니다.");
+    attachTooltip(pngConvChk.parentElement.querySelector(".mainfrmSpan"), "JPEG, WebP, BMP, TIFF 파일을 호환성이 높은 PNG로 변환합니다.");
     
     const gifEditChk = makeChkbox(form, "GIF 편집");
-    attachTooltip(gifEditChk.parentElement.querySelector(".mainfrmSpan"), "다운로드 전 GIF의 재생 속도, 특정 프레임 제거, 밝기 조절 등 세부 편집창을 띄웁니다.\n(주의: 변환 시간이 오래 걸릴 수 있습니다.)");
+    attachTooltip(gifEditChk.parentElement.querySelector(".mainfrmSpan"), "변환된 GIF 및 원본 GIF의 재생 속도, 프레임 제거,\n밝기/샤픈 조절 등 세부 편집창을 띄웁니다.\n(GIF 변환 체크 필수, 업스케일링과 동시 사용 불가)");
     
     const upscaleChk = makeChkbox(form, "업스케일링");
-    attachTooltip(upscaleChk.parentElement.querySelector(".mainfrmSpan"), "이미지 해상도를 2배 높여 선명하게 만듭니다. (GIF/PNG 변환 필수)");
+    attachTooltip(upscaleChk.parentElement.querySelector(".mainfrmSpan"), "AI를 사용해 이미지 해상도를 높여 선명하게 만듭니다.\n(GIF 변환 + PNG 변환 모두 체크 필수)\n⚠️ GIF 편집과 동시 사용 불가");
     const syncDependencies = () => {
         if (!gifConvChk.checked) {
             gifEditChk.checked = false;
@@ -860,17 +860,17 @@ input[type=checkbox]:checked::after {
     // 기타 옵션 항목 생성 (팝업에 추가됨)
     const lossySelectLabel = createTagClass("label", "selLbl");
     const lossySelectText = createTagClass("span", "mainfrmSpan", "GIF 화질", lossySelectLabel);
-    attachTooltip(lossySelectText, "MP4(동영상) 파일을 GIF로 변환할 때 적용되는 화질 옵션입니다.\n최하일수록 화질이 떨어지지만 용량이 대폭 감소합니다.");
+    attachTooltip(lossySelectText, "동영상을 GIF로 변환할 때 적용되는 화질 옵션입니다.\n'기본'은 ffmpeg 기본 변환이며, '최상'은 팔레트 최적화로 가장 높은 품질입니다.\n'최하'로 갈수록 색상 수를 줄여 용량이 감소하지만 화질이 떨어집니다.");
     const lossySelectCombo = createTagClass("select", "mainfrmSelect", null, lossySelectLabel);
 
     const fpsSelectLabel = createTagClass("label", "selLbl");
     const fpsSelectText = createTagClass("span", "mainfrmSpan", "GIF 프레임", fpsSelectLabel);
-    attachTooltip(fpsSelectText, "MP4(동영상) 파일을 GIF로 변환할 때 추출할 초당 프레임(FPS)입니다.\n수치가 높을수록 부드럽지만 용량이 매우 커집니다.\n(주의: GIF 화질이 '기본'일 때만 작동합니다.)");
+    attachTooltip(fpsSelectText, "동영상을 GIF로 변환할 때 추출할 초당 프레임(FPS)입니다.\n높을수록 부드럽지만 용량이 크게 늘어납니다.");
     const fpsSelectCombo = createTagClass("select", "mainfrmSelect", null, fpsSelectLabel);
 
     const delayInputLabel = createTagClass("label", "selLbl");
     const delayInputText = createTagClass("span", "mainfrmSpan", "다운로드 딜레이(ms)", delayInputLabel);
-    attachTooltip(delayInputText, "서버 차단을 막기 위해 이미지 1개 다운로드 후 대기하는 시간(ms)입니다.");
+    attachTooltip(delayInputText, "서버 차단을 막기 위해 이미지 1개마다 대기하는 시간(ms)입니다.\n실제 대기 시간은 설정값 근처에서 조금씩 다르게 적용됩니다.");
     const delayInputBox = createTagClass("input", "mainfrmSelect", null, delayInputLabel);
     delayInputBox.type = "number";
     delayInputBox.min = "0";
@@ -1364,7 +1364,7 @@ input[type=checkbox]:checked::after {
                     const fps = fpsSelectCombo.value;
                     const lossy = lossySelectCombo.value;
                     if (lossy == 1)
-                        return null;
+                        return `fps=${fps},scale=-1:-1:flags=lanczos,split [a][b];[a] palettegen [p];[b][p] paletteuse`;
                     const lossyValue = Math.floor(lossy / 100 * 256);
                     const lossyOption = lossy >= 100 ? `palettegen` : `palettegen=max_colors=${lossyValue}`;
                     return `fps=${fps},scale=-1:-1:flags=lanczos,split [a][b];[a] ${lossyOption} [p];[b][p] paletteuse`;
@@ -1915,17 +1915,19 @@ input[type=checkbox]:checked::after {
                                             const popup_row1 = createTagClass("div", "popup-row", null, popup);
                                             const lbl_c1 = createTagHTML("label", "속도 변경", popup_row1);
                                             const checkbox1 = createControl("checkbox", lbl_c1, true);
-                                            attachTooltip(lbl_c1, "GIF의 재생 속도를 변경합니다.\n퍼센트가 높을수록 빨라지고 낮을수록 느려집니다.");
+                                            attachTooltip(lbl_c1, "GIF의 재생 속도를 변경합니다.\n100%가 원본 속도이며, 200%면 2배속, 50%면 반속입니다.\n(범위: 1%~400%)");
                                             const lbl1 = createTagHTML("label", "", popup_row1);
                                             const range1 = createControl("range", lbl1);
                                             const vlbl1 = createTagHTML("div", "100%", lbl1);
-                                            createTagHTML("label", "느림 <------------> 빠름", popup_row1);
+                                            const speedIndicator = createTagHTML("label", "", popup_row1);
+                                            speedIndicator.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:6px;font-size:12px;color:#9ca3af;user-select:none;";
+                                            setHTML(speedIndicator, `<span style="display:flex;align-items:center;gap:3px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>느림</span><span style="flex:1;height:2px;background:linear-gradient(90deg,#d1d5db,#6366f1);border-radius:1px;"></span><span style="display:flex;align-items:center;gap:3px;">빠름<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>`);
 
                                             // 프레임 스킵 영역
                                             const popup_row2 = createTagClass("div", "popup-row", null, popup);
                                             const lbl_c2 = createTagHTML("label", "프레임 스킵", popup_row2);
                                             const checkbox2 = createControl("checkbox", lbl_c2, true);
-                                            attachTooltip(lbl_c2, "지정한 개수만큼 프레임을 건너뛰고 제거합니다.\n용량을 크게 줄일 수 있지만 뚝뚝 끊기게 보일 수 있습니다.");
+                                            attachTooltip(lbl_c2, "일정 간격으로 프레임을 건너뛴 후 연속으로 제거합니다.\n'건너뛸 수': N개마다 한 번 멈춤\n'제거할 수': 멈춰서 연속 제거할 프레임 수\n용량이 줄지만 애니메이션이 끊길 수 있습니다.");
                                             const textbox2 = createControl("text", createTagHTML("label", "건너뛸 수: ", popup_row2));
                                             textbox2.addEventListener('input', function () {
                                                 this.value = this.value.replace(/[^0-9]/g, '');
@@ -1962,7 +1964,7 @@ input[type=checkbox]:checked::after {
 
                                             const lbl_c6 = createTagHTML("label", "색상 최적화", popup_row4);
                                             const checkbox6 = createControl("checkbox", lbl_c6, true);
-                                            attachTooltip(lbl_c6, "색상 양자화 품질을 설정하여 용량을 줄입니다.\n숫자가 클수록 용량이 줄지만 화질이 떨어집니다. (기본: 6)");
+                                            attachTooltip(lbl_c6, "GIF에 사용되는 색상 수를 줄여 용량을 감소시킵니다.\n숫자가 클수록 용량이 줄지만 색이 뭉개집니다. (기본: 6)");
                                             const lbl6 = createTagHTML("label", "", popup_row4);
                                             const range6 = createControl("range", lbl6);
                                             const vlbl6 = createTagHTML("div", "6", lbl6);
@@ -2404,12 +2406,12 @@ input[type=checkbox]:checked::after {
                                 ["swin_unet,art_scan", "🎨 SwinUNet Art Scan"],
                                 ["swin_unet,photo", "📷 SwinUNet Photo"],
                                 ["cunet,art", "🎨 CUNet Art"]
-                            ], "250px", "사용할 AI 모델:\n• SwinUNet Art: 2D 애니/일러스트에 최적화(권장)\n• SwinUNet Photo: 실사 사진, 풍경에 적합\n• CUNet Art: 구형 모델로 가벼우나 품질은 낮음");
+                            ], "250px", "사용할 AI 모델:\n• SwinUNet Art: 2D 애니/일러스트에 최적화 (권장)\n• SwinUNet Art Scan: 스캔된 만화/일러스트에 적합\n• SwinUNet Photo: 실사 사진, 풍경에 적합\n• CUNet Art: 구형 모델로 가볍지만 품질이 다소 떨어짐");
 
                             const scaleSelect = mkRow(upscaleOptionsPanel, "스케일", [
                                 ["scale2x", "2x"],
                                 ["scale4x", "4x"]
-                            ], "250px", "이미지의 가로/세로를 몇 배로 확대할지 선택합니다. (4x 선택 시 픽셀 수는 16배로 증가하여 연산 시간이 크게 깁니다)");
+                            ], "250px", "이미지의 가로/세로를 몇 배로 확대할지 선택합니다.\n4x 선택 시 픽셀 수가 16배로 증가하므로 연산 시간이 매우 오래 걸립니다.");
 
                             const noiseSelect = mkRow(upscaleOptionsPanel, "노이즈 제거", [
                                 ["none", "없음"],
@@ -2417,7 +2419,7 @@ input[type=checkbox]:checked::after {
                                 ["noise1", "중"],
                                 ["noise2", "강"],
                                 ["noise3", "최강"]
-                            ], "250px", "압축으로 인한 열화(JPG 노이즈 등)를 제거합니다.\n⚠️ 주의: 노이즈가 없는 깨끗한 원본 이미지에 '강~최강'을 적용하면 미세한 펜선이나 질감(디테일)까지 뭉개져서 수채화처럼 흐려지는 역효과가 납니다. 원본이 깨끗하다면 '없음'이나 '약'을 권장합니다.");
+                            ], "250px", "압축으로 인한 열화(JPG 노이즈 등)를 제거합니다.\n⚠️ 주의: 깨끗한 원본에 '강~최강'을 적용하면 미세한 펜선이나 질감까지 뭉개져 수채화처럼 흐려질 수 있습니다. 원본이 깨끗하다면 '없음' 또는 '약'을 권장합니다.");
 
                             const tileSelect = mkRow(upscaleOptionsPanel, "타일", [
                                 ["auto", "자동"],
@@ -2434,7 +2436,7 @@ input[type=checkbox]:checked::after {
                                 ["6", "6 (기본)"],
                                 ["10", "10"],
                                 ["20", "20 (최하)"]
-                            ], "250px", "결과물 GIF의 압축 품질(색상 양자화 등)을 결정합니다.\n1에 가까울수록 색상 손실이 없는 고품질이 되지만 용량이 급격히 늘어납니다.");
+                            ], "250px", "업스케일링된 GIF 결과물의 압축 품질을 결정합니다.\n숫자가 작을수록 고품질이지만 용량이 급격히 늘어납니다.");
 
                             const computeModeSelect = mkRow(upscaleOptionsPanel, "연산 모드", [
                                 ["webgpu", "GPU 가속 (빠름)"],
@@ -2446,7 +2448,7 @@ input[type=checkbox]:checked::after {
                                 ["2", "2 (약간 향상)"],
                                 ["4", "4 (높은 향상)"],
                                 ["8", "8 (최상/매우 느림)"]
-                            ], "250px", "이미지를 다각도(회전/반전)로 여러 번 분석해 오차를 보정하고 병합하는 기술입니다.\n복잡한 선이나 패턴에서 효과가 매우 뛰어나지만, 레벨(2~8배)만큼 시간이 정직하게 배수로 늘어나므로 시간적 여유가 있을 때만 사용하세요.");
+                            ], "250px", "이미지를 회전/반전하여 여러 번 분석 후 결과를 병합하는 기술입니다.\n품질이 소폭 향상되지만 설정값만큼 처리 시간이 배수로 늘어납니다.\n시간 여유가 있을 때만 사용하세요.");
                             // 기본값: CUNet Art, 2x, 최강, 256
                             modelSelect.value = "cunet,art";
                             scaleSelect.value = "scale2x";
@@ -2472,8 +2474,9 @@ input[type=checkbox]:checked::after {
                             alphaRowContainer.style.minHeight = "36px";
                             const alphaLblWrap = createTagClass("div", "", null, alphaRowContainer);
                             alphaLblWrap.style.cssText = "display:flex;align-items:center;gap:4px;";
-                            createTagClass("span", "mainfrmSpan", "알파 채널 유지", alphaLblWrap);
-                            attachTooltip(alphaLblWrap, "이미지의 투명한 부분(배경)을 유지할지 결정합니다.\n체크 해제 시 투명한 배경이 검은색으로 채워지며, 연산량이 약간 줄어듭니다.");
+                            const alphaLblSpan = createTagClass("span", "mainfrmSpan", "알파 채널 유지", alphaLblWrap);
+                            alphaLblSpan.style.flex = "none";
+                            attachTooltip(alphaLblSpan, "이미지의 투명한 부분(배경)을 유지할지 결정합니다.\n체크 해제 시 투명 배경이 검은색으로 채워지며, 연산량이 소폭 줄어듭니다.");
 
 
                             const upAlphaRight = createTagClass("div", "", null, alphaRowContainer);
