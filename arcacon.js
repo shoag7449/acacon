@@ -2381,8 +2381,9 @@ input[type=checkbox]:checked::after {
 
                             const mkRow = (parent, label, options, width, tooltip) => {
                                 const row = createTagClass("div", "selLbl");
+                                row.style.flexWrap = "nowrap";
                                 const lblWrap = createTagClass("div", "", null, row);
-                                lblWrap.style.cssText = "display:flex;align-items:center;gap:4px;";
+                                lblWrap.style.cssText = "display:flex;align-items:center;gap:4px;flex-shrink:0;";
                                 const lblSpan = createTagClass("span", "mainfrmSpan", label, lblWrap);
                                 lblSpan.style.flex = "none";
 
@@ -2391,7 +2392,7 @@ input[type=checkbox]:checked::after {
                                 }
 
                                 const sel = createTagClass("select", "mainfrmSelect", null, row);
-                                sel.style.width = width || "180px";
+                                sel.style.cssText = `max-width:${width || "180px"};width:100%;flex-shrink:1;`;
                                 options.forEach(([v, t]) => {
                                     const o = createTagClass("option", "", t);
                                     o.value = v;
