@@ -180,6 +180,7 @@
 
 .mainfrmlbl {
     display: flex;
+    justify-content: space-between;
     align-items: center;
     cursor: pointer;
     font-weight: 500;
@@ -210,6 +211,20 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
+}
+.selLbl .mainfrmSpan {
+    flex: 1;
+    min-width: 0;
+}
+.selLbl .mainfrmSelect,
+.selLbl select.mainfrmSelect,
+.selLbl input.mainfrmSelect {
+    flex: 0 0 100px !important;
+    width: 100px !important;
+    height: 36px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
 }
 
 input[type=checkbox], input[type=radio] {
@@ -269,6 +284,29 @@ input[type=checkbox]:checked::after {
 }
 .mainfrmBtn2:hover {
     background: #e5e7eb;
+}
+
+.extraOptionsFrm {
+    font-family: var(--font-family);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(250, 250, 250, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    width: 300px;
+    max-width: 90%;
+    z-index: 99999999999;
+    animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .gifEditfrm {
@@ -735,6 +773,10 @@ input[type=checkbox]:checked::after {
         window._arcaconUiRoot = uiRoot;
     } else {
         uiRoot = window._arcaconUiRoot || _uiHost.shadowRoot;
+        const styleTag = uiRoot.querySelector("style");
+        if (styleTag) {
+            styleTag.textContent = MODERN_CSS_TEXT + "\n * { box-sizing: border-box; }";
+        }
     }
 
     let alert_tag = uiRoot.getElementById ? uiRoot.getElementById(F366C_STR) : uiRoot.querySelector("#" + F366C_STR);
@@ -765,9 +807,9 @@ input[type=checkbox]:checked::after {
     const form = createTag("div", formContainer);
 
     const gifConvChk = makeChkbox(form, "GIF 변환");
-    const gifEditChk = makeChkbox(form, "GIF 편집");
     const pngConvChk = makeChkbox(form, "PNG 변환");
-    const upscaleChk = makeChkbox(form, "업스케일링 (waifu2x)");
+    const gifEditChk = makeChkbox(form, "GIF 편집");
+    const upscaleChk = makeChkbox(form, "업스케일링");
     const syncDependencies = () => {
         if (!gifConvChk.checked) {
             gifEditChk.checked = false;
@@ -809,15 +851,21 @@ input[type=checkbox]:checked::after {
         }
     });
 
-    // gif 화질 설정칸
-    const lossySelectLabel = createTagClass("label", "selLbl", null, form);
+    // 기타 옵션 항목 생성 (팝업에 추가됨)
+    const lossySelectLabel = createTagClass("label", "selLbl");
     const lossySelectText = createTagClass("span", "mainfrmSpan", "GIF 화질", lossySelectLabel);
     const lossySelectCombo = createTagClass("select", "mainfrmSelect", null, lossySelectLabel);
 
-    // gif 프레임 설정칸
-    const fpsSelectLabel = createTagClass("label", "selLbl", null, form);
+    const fpsSelectLabel = createTagClass("label", "selLbl");
     const fpsSelectText = createTagClass("span", "mainfrmSpan", "GIF 프레임", fpsSelectLabel);
     const fpsSelectCombo = createTagClass("select", "mainfrmSelect", null, fpsSelectLabel);
+
+    const delayInputLabel = createTagClass("label", "selLbl");
+    createTagClass("span", "mainfrmSpan", "다운로드 딜레이(ms)", delayInputLabel);
+    const delayInputBox = createTagClass("input", "mainfrmSelect", null, delayInputLabel);
+    delayInputBox.type = "number";
+    delayInputBox.min = "0";
+    delayInputBox.step = "50";
 
     // 콤보박스에 GIF 프레임 값을 넣는다
     [5, 12, 25, 33, 60].forEach(e => {
@@ -845,6 +893,10 @@ input[type=checkbox]:checked::after {
 
     const savedFpsValue = setMinMax(localStorage.getItem(F366C_STR + "fpsval"), 5, 60, 33);
     fpsSelectCombo.value = savedFpsValue;
+
+    const rawDelay = localStorage.getItem(F366C_STR + "delayval");
+    const savedDelayValue = rawDelay !== null ? setMinMax(parseInt(rawDelay), 0, 10000, 100) : 100;
+    delayInputBox.value = savedDelayValue;
 
     lossySelectCombo.addEventListener("change", e => {
         fpsSelectLabel.style.display = parseInt(e.target.value) === 1 ? "none" : "flex";
@@ -884,6 +936,27 @@ input[type=checkbox]:checked::after {
         })();
     }
 
+    const extraOptionsBtn = createTagClass("button", "mainfrmBtn2", "⚙️ 기타 옵션", form);
+    extraOptionsBtn.style.background = "#f3f4f6";
+    extraOptionsBtn.style.color = "#4b5563";
+    extraOptionsBtn.addEventListener("click", () => {
+        if (uiRoot.querySelector(".extraOptionsFrm")) return;
+
+        const popupWin = createTagClass("div", "extraOptionsFrm");
+
+        const popupTitle = createTagClass("div", "", "⚙️ 기타 옵션", popupWin);
+        popupTitle.style.cssText = "font-size:16px;font-weight:700;color:#1f2937;margin-bottom:8px;";
+
+        append(popupWin, lossySelectLabel);
+        append(popupWin, fpsSelectLabel);
+        append(popupWin, delayInputLabel);
+
+        const closeBtn = createTagClass("button", "mainfrmBtn1", "닫기", popupWin);
+        closeBtn.addEventListener("click", () => popupWin.remove());
+
+        append(uiRoot, popupWin);
+    });
+
     const button1 = createTagClass("button", "mainfrmBtn1", "전체 이미지 다운로드", form);
     const button3 = createTagClass("button", "mainfrmBtn1", "이미지 선택", form);
     button3.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
@@ -917,6 +990,7 @@ input[type=checkbox]:checked::after {
         localStorage.setItem(F366C_STR + "chk4", upscaleChk.checked);
         localStorage.setItem(F366C_STR + "lossyval", lossySelectCombo.value);
         localStorage.setItem(F366C_STR + "fpsval", fpsSelectCombo.value);
+        localStorage.setItem(F366C_STR + "delayval", delayInputBox.value);
         localStorage.setItem(F366C_STR, e);
     };
 
@@ -1504,7 +1578,6 @@ input[type=checkbox]:checked::after {
 
                         // 변환이 된 이미지를 품고 있는 html 태그는 배경색을 바꾼다
                         emoObj.element.style.cssText += ";filter:sepia(100%) hue-rotate(90deg)";
-                        await sleep(Math.floor(Math.random() * 500) + 200);
                     } catch (error) {
                         ++failCnt;
                         setSt(successCnt, img_count, failCnt);
@@ -1513,14 +1586,21 @@ input[type=checkbox]:checked::after {
                 }
 
                 const executeDownloadsAndFinish = (targetUrls) => {
-                    const tasks = [];
+                    // 모든 다운로드 태스크를 논블로킹 타이머로 스케줄링하여 배열에 담음
+                    const tasks = targetUrls.map((url, i) => {
+                        return new Promise(resolve => {
+                            const delayMs = parseInt(delayInputBox.value);
+                            let totalDelay = 0;
+                            if (!isNaN(delayMs) && delayMs > 0) {
+                                const jitter = Math.floor(delayMs * 0.2);
+                                totalDelay = Math.max(0, (delayMs * i) + (Math.floor(Math.random() * (jitter * 2 + 1)) - jitter));
+                            }
+                            // i번째 이미지는 delayMs * i 초 뒤에 정확히 백그라운드 출발
+                            setTimeout(() => resolve(URLDownloadImage(url)), totalDelay);
+                        });
+                    });
 
-                    for (const url of targetUrls) {
-                        // 추출이 된 url를 다운로드 한 뒤 변환하는 함수 호출
-                        tasks.push(URLDownloadImage(url));
-                    }
-
-                    // 다운로드 뒤 변환이 끝난 경우
+                    // 던져놓은 모든 백그라운드 다운로드가 최종 완료될 때까지 대기
                     Promise.all(tasks).then(async () => {
                         if (successCnt <= 0) {
                             localStorage.setItem(F366C_STR, 0);
@@ -1650,8 +1730,12 @@ input[type=checkbox]:checked::after {
 
                             close_btn.addEventListener('click', e => {
                                 e.stopPropagation();
-                                form.remove();
-                                uiRoot.querySelectorAll(".gifAdjustPopup").forEach(e => e.remove());
+                                gifs.forEach(item => {
+                                    if (item.url) revokURL(item.url);
+                                });
+                                gifs.length = 0;
+                                const host = document.getElementById("arcacon-ui-host");
+                                if (host) host.remove();
                             });
 
                             form.addEventListener('scroll', () => {
@@ -2163,8 +2247,12 @@ input[type=checkbox]:checked::after {
                             const close_btn2 = createTagClass("button", "close-btn", null, upscaleFormContainer);
                             setHTML(close_btn2, "&times;");
                             close_btn2.addEventListener('click', () => {
-                                upscaleFormContainer.remove();
-                                uiRoot.querySelectorAll(".gifAdjustPopup").forEach(e => e.remove());
+                                upscaleItems.forEach(item => {
+                                    if (item.url) revokURL(item.url);
+                                });
+                                upscaleItems.length = 0;
+                                const host = document.getElementById("arcacon-ui-host");
+                                if (host) host.remove();
                             });
                             upscaleFormContainer.addEventListener('scroll', () => {
                                 close_btn2.style.top = (upscaleFormContainer.scrollTop + 16) + 'px';
@@ -2973,6 +3061,7 @@ input[type=checkbox]:checked::after {
         })();
 
         formContainer.style.display = "none";
+        uiRoot.querySelectorAll(".extraOptionsFrm").forEach(e => e.remove());
         if (!isSelectMode) {
             alert_tag.style.display = "flex";
         }
@@ -2983,8 +3072,8 @@ input[type=checkbox]:checked::after {
 
     button2.addEventListener("click", () => {
         saveSettings(0);
-        formContainer.style.display = "none";
-        alert_tag.remove();
+        const host = document.getElementById("arcacon-ui-host");
+        if (host) host.remove();
     });
 
     const autostart = localStorage.getItem(F366C_STR);
