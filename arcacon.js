@@ -220,8 +220,7 @@
 .selLbl .mainfrmSelect,
 .selLbl select.mainfrmSelect,
 .selLbl input.mainfrmSelect {
-    flex: 0 0 100px !important;
-    width: 100px !important;
+    flex: 0 0 auto;
     height: 36px !important;
     box-sizing: border-box !important;
     margin: 0 !important;
@@ -650,7 +649,7 @@ input[type=checkbox]:checked::after {
     };
     const attachTooltip = (parentElem, tooltipText) => {
         const help = createTagClass("span", "", "?", parentElem);
-        help.style.cssText = "display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#cbd5e1;color:white;font-size:10px;font-weight:bold;cursor:help;margin-left:6px;";
+        help.style.cssText = "display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:#cbd5e1;color:white;font-size:10px;font-weight:bold;cursor:help;margin-left:2px;";
         const tt = createTagClass("div", "", tooltipText);
         tt.style.cssText = "position:fixed;background:rgba(0,0,0,0.85);color:white;padding:8px 12px;border-radius:6px;font-size:12px;white-space:pre-wrap;width:max-content;min-width:150px;max-width:320px;text-align:left;line-height:1.4;display:none;z-index:2147483647;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.2);";
 
@@ -807,9 +806,16 @@ input[type=checkbox]:checked::after {
     const form = createTag("div", formContainer);
 
     const gifConvChk = makeChkbox(form, "GIF 변환");
+    attachTooltip(gifConvChk.parentElement.querySelector(".mainfrmSpan"), "MP4(동영상) 파일을 GIF로 자동 변환합니다.");
+    
     const pngConvChk = makeChkbox(form, "PNG 변환");
+    attachTooltip(pngConvChk.parentElement.querySelector(".mainfrmSpan"), "WebP 등 기타 포맷을 호환성이 높은 PNG로 통일합니다.");
+    
     const gifEditChk = makeChkbox(form, "GIF 편집");
+    attachTooltip(gifEditChk.parentElement.querySelector(".mainfrmSpan"), "다운로드 전 GIF의 재생 속도, 특정 프레임 제거, 밝기 조절 등 세부 편집창을 띄웁니다.\n(주의: 변환 시간이 오래 걸릴 수 있습니다.)");
+    
     const upscaleChk = makeChkbox(form, "업스케일링");
+    attachTooltip(upscaleChk.parentElement.querySelector(".mainfrmSpan"), "이미지 해상도를 2배 높여 선명하게 만듭니다. (GIF/PNG 변환 필수)");
     const syncDependencies = () => {
         if (!gifConvChk.checked) {
             gifEditChk.checked = false;
@@ -854,14 +860,17 @@ input[type=checkbox]:checked::after {
     // 기타 옵션 항목 생성 (팝업에 추가됨)
     const lossySelectLabel = createTagClass("label", "selLbl");
     const lossySelectText = createTagClass("span", "mainfrmSpan", "GIF 화질", lossySelectLabel);
+    attachTooltip(lossySelectText, "MP4(동영상) 파일을 GIF로 변환할 때 적용되는 화질 옵션입니다.\n최하일수록 화질이 떨어지지만 용량이 대폭 감소합니다.");
     const lossySelectCombo = createTagClass("select", "mainfrmSelect", null, lossySelectLabel);
 
     const fpsSelectLabel = createTagClass("label", "selLbl");
     const fpsSelectText = createTagClass("span", "mainfrmSpan", "GIF 프레임", fpsSelectLabel);
+    attachTooltip(fpsSelectText, "MP4(동영상) 파일을 GIF로 변환할 때 추출할 초당 프레임(FPS)입니다.\n수치가 높을수록 부드럽지만 용량이 매우 커집니다.\n(주의: GIF 화질이 '기본'일 때만 작동합니다.)");
     const fpsSelectCombo = createTagClass("select", "mainfrmSelect", null, fpsSelectLabel);
 
     const delayInputLabel = createTagClass("label", "selLbl");
-    createTagClass("span", "mainfrmSpan", "다운로드 딜레이(ms)", delayInputLabel);
+    const delayInputText = createTagClass("span", "mainfrmSpan", "다운로드 딜레이(ms)", delayInputLabel);
+    attachTooltip(delayInputText, "서버 차단을 막기 위해 이미지 1개 다운로드 후 대기하는 시간(ms)입니다.");
     const delayInputBox = createTagClass("input", "mainfrmSelect", null, delayInputLabel);
     delayInputBox.type = "number";
     delayInputBox.min = "0";
@@ -2372,10 +2381,11 @@ input[type=checkbox]:checked::after {
                                 const row = createTagClass("div", "selLbl");
                                 const lblWrap = createTagClass("div", "", null, row);
                                 lblWrap.style.cssText = "display:flex;align-items:center;gap:4px;";
-                                createTagClass("span", "mainfrmSpan", label, lblWrap);
+                                const lblSpan = createTagClass("span", "mainfrmSpan", label, lblWrap);
+                                lblSpan.style.flex = "none";
 
                                 if (tooltip) {
-                                    attachTooltip(lblWrap, tooltip);
+                                    attachTooltip(lblSpan, tooltip);
                                 }
 
                                 const sel = createTagClass("select", "mainfrmSelect", null, row);
