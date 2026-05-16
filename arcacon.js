@@ -807,13 +807,13 @@ input[type=checkbox]:checked::after {
 
     const gifConvChk = makeChkbox(form, "GIF 변환");
     attachTooltip(gifConvChk.parentElement.querySelector(".mainfrmSpan"), "MP4, WebM 등 동영상 파일을 GIF로 자동 변환합니다.");
-    
+
     const pngConvChk = makeChkbox(form, "PNG 변환");
     attachTooltip(pngConvChk.parentElement.querySelector(".mainfrmSpan"), "JPEG, WebP, BMP, TIFF 파일을 호환성이 높은 PNG로 변환합니다.");
-    
+
     const gifEditChk = makeChkbox(form, "GIF 편집");
     attachTooltip(gifEditChk.parentElement.querySelector(".mainfrmSpan"), "변환된 GIF 및 원본 GIF의 재생 속도, 프레임 제거,\n밝기/샤픈 조절 등 세부 편집창을 띄웁니다.\n(GIF 변환 체크 필수, 업스케일링과 동시 사용 불가)");
-    
+
     const upscaleChk = makeChkbox(form, "업스케일링");
     attachTooltip(upscaleChk.parentElement.querySelector(".mainfrmSpan"), "AI를 사용해 이미지 해상도를 높여 선명하게 만듭니다.\n(GIF 변환 + PNG 변환 모두 체크 필수)\n⚠️ GIF 편집과 동시 사용 불가");
     const syncDependencies = () => {
@@ -904,7 +904,7 @@ input[type=checkbox]:checked::after {
     fpsSelectCombo.value = savedFpsValue;
 
     const rawDelay = localStorage.getItem(F366C_STR + "delayval");
-    const savedDelayValue = rawDelay !== null ? setMinMax(parseInt(rawDelay), 0, 10000, 100) : 100;
+    const savedDelayValue = rawDelay !== null ? setMinMax(parseInt(rawDelay), 0, 10000, 50) : 50;
     delayInputBox.value = savedDelayValue;
 
     lossySelectCombo.addEventListener("change", e => {
