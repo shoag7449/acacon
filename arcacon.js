@@ -1979,7 +1979,7 @@ input[type=checkbox]:checked::after {
                                             const popup_row_bg = createTagClass("div", "popup-row", null, popup);
                                             const lbl_cbg = createTagHTML("label", "배경 제거", popup_row_bg);
                                             const checkboxBg = createControl("checkbox", lbl_cbg, true);
-                                            attachTooltip(lbl_cbg, "지정한 색상과 일치하는 픽셀을 투명하게 만듭니다.\n색상 임계값을 높이면 유사한 색조도 함께 제거됩니다.\n(onlinegiftools.com/remove-gif-background 동일 기능)");
+                                            attachTooltip(lbl_cbg, "지정한 색상과 일치하는 픽셀을 투명하게 만듭니다.\n색상 임계값을 높이면 유사한 색조도 함께 제거됩니다.\n");
 
                                             const bgColorRow = createTagHTML("label", "배경 색상: ", popup_row_bg);
                                             bgColorRow.style.cssText = "display:flex;align-items:center;gap:6px;font-size:13px;";
