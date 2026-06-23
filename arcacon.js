@@ -27,7 +27,7 @@
     const JS_ZIP_URL = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"; // 압축 파일 관련 모듈
     const FFMPEG_CORE_JS_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.min.js"; // gif 파일 변환 관련 모듈
     const FFMPEG_CORE_WASM_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm"; // gif 파일 변환 관련 모듈
-    const GIF_EDIT_URL = "http://192.168.1.126/file?vw=1&v=/gifs.js"; // gif 파일 편집 관련 모듈
+    const GIF_EDIT_URL = "https://shoag7449.github.io/acacon/gifs.js"; // gif 파일 편집 관련 모듈
     const ONNX_CDN_BASE = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/";
     const ONNX_RUNTIME_URLS = {
         webgpu: ONNX_CDN_BASE + "ort.webgpu.min.js", // WebGPU EP 포함 (GPU 가속)
