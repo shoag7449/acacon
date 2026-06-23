@@ -27,7 +27,7 @@
     const JS_ZIP_URL = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"; // 압축 파일 관련 모듈
     const FFMPEG_CORE_JS_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.min.js"; // gif 파일 변환 관련 모듈
     const FFMPEG_CORE_WASM_URL = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm"; // gif 파일 변환 관련 모듈
-    const GIF_EDIT_URL = "https://shoag7449.github.io/acacon/gifs.js"; // gif 파일 편집 관련 모듈
+    const GIF_EDIT_URL = "http://192.168.1.126/file?vw=1&v=/gifs.js"; // gif 파일 편집 관련 모듈
     const ONNX_CDN_BASE = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/";
     const ONNX_RUNTIME_URLS = {
         webgpu: ONNX_CDN_BASE + "ort.webgpu.min.js", // WebGPU EP 포함 (GPU 가속)
@@ -1433,6 +1433,12 @@ input[type=checkbox]:checked::after {
                             enable: null,
                             quality: null
                         },
+                        removeBg: {
+                            enable: null,
+                            color: null,
+                            threshold: null,
+                            outerOnly: null
+                        },
                     };
                 };
 
@@ -1969,9 +1975,43 @@ input[type=checkbox]:checked::after {
                                             const range6 = createControl("range", lbl6);
                                             const vlbl6 = createTagHTML("div", "6", lbl6);
 
+                                            // 배경 제거 영역
+                                            const popup_row_bg = createTagClass("div", "popup-row", null, popup);
+                                            const lbl_cbg = createTagHTML("label", "배경 제거", popup_row_bg);
+                                            const checkboxBg = createControl("checkbox", lbl_cbg, true);
+                                            attachTooltip(lbl_cbg, "지정한 색상과 일치하는 픽셀을 투명하게 만듭니다.\n색상 임계값을 높이면 유사한 색조도 함께 제거됩니다.\n(onlinegiftools.com/remove-gif-background 동일 기능)");
+
+                                            const bgColorRow = createTagHTML("label", "배경 색상: ", popup_row_bg);
+                                            bgColorRow.style.cssText = "display:flex;align-items:center;gap:6px;font-size:13px;";
+                                            const bgColorPicker = createControl("color", bgColorRow);
+                                            bgColorPicker.value = "#ffffff";
+                                            bgColorPicker.style.cssText = "width:36px;height:28px;padding:0;border:none;cursor:pointer;border-radius:4px;";
+                                            const bgColorText = createControl("text", bgColorRow);
+                                            bgColorText.value = "#ffffff";
+                                            bgColorText.style.cssText = "width:80px;padding:4px 6px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center;";
+                                            bgColorPicker.addEventListener("input", () => { bgColorText.value = bgColorPicker.value; });
+                                            bgColorText.addEventListener("input", () => {
+                                                const v = bgColorText.value.trim();
+                                                if (/^#[0-9a-fA-F]{6}$/.test(v)) bgColorPicker.value = v;
+                                            });
+
+                                            const bgThreshRow = createTagHTML("label", "", popup_row_bg);
+                                            const bgThreshLblTxt = document.createTextNode("색상 임계값: ");
+                                            bgThreshRow.appendChild(bgThreshLblTxt);
+                                            const rangeBg = createControl("range", bgThreshRow);
+                                            const vlblBg = createTagHTML("div", "10%", bgThreshRow);
+                                            setAttr(rangeBg, "min", "0");
+                                            setAttr(rangeBg, "max", "100");
+                                            rangeBg.value = 10;
+                                            rangeBg.oninput = rangeBg.onchange = function () { setHTML(vlblBg, `${this.value}%`); };
+
+                                            const bgOuterRow = createTagHTML("label", "외부 배경만 제거 ", popup_row_bg);
+                                            bgOuterRow.style.cssText = "display:flex;align-items:center;gap:6px;font-size:13px;";
+                                            const checkboxBgOuter = createControl("checkbox", bgOuterRow);
+                                            attachTooltip(bgOuterRow, "체크 시 테두리와 연결된 배경 색상만 제거하여\n내부 동일 색상은 보존합니다.");
+
                                             // 기타 옵션 영역
-                                            const popup_row5 = createTagClass("div", "popup-row", null, popup);
-                                            const lbl_c7 = createTagHTML("label", "기타 옵션", popup_row5);
+                                            const popup_row5 = createTagClass("div", "popup-row", null, popup); const lbl_c7 = createTagHTML("label", "기타 옵션", popup_row5);
                                             attachTooltip(lbl_c7, "GIF의 모든 프레임을 한 장의 이미지(스프라이트 시트)로 병합합니다.\n가로(열)와 세로(행) 개수를 지정할 수 있으며, 빈칸이면 자동으로 계산됩니다.");
 
                                             const spriteColsBox = createControl("text", createTagHTML("label", "가로(열): ", popup_row5));
@@ -2149,6 +2189,13 @@ input[type=checkbox]:checked::after {
                                             range6.value = options.quality.quality ?? 6;
                                             range6.onchange();
 
+                                            checkboxBg.checked = options.removeBg.enable ?? false;
+                                            bgColorPicker.value = options.removeBg.color ?? "#ffffff";
+                                            bgColorText.value = options.removeBg.color ?? "#ffffff";
+                                            rangeBg.value = options.removeBg.threshold ?? 10;
+                                            rangeBg.onchange();
+                                            checkboxBgOuter.checked = options.removeBg.outerOnly ?? false;
+
                                             btn.addEventListener('click', async (e) => {
                                                 e.stopPropagation();
 
@@ -2169,6 +2216,7 @@ input[type=checkbox]:checked::after {
                                                 const sharpenVal = parseInt(range4.value);
                                                 const thresholdVal = parseInt(range5.value);
                                                 const qualityVal = parseInt(range6.value);
+                                                const bgThresholdVal = parseInt(rangeBg.value);
 
                                                 works.forEach(async e => {
                                                     const options = gifs[e].info.options;
@@ -2186,6 +2234,10 @@ input[type=checkbox]:checked::after {
                                                     options.optimize.threshold = thresholdVal;
                                                     options.quality.enable = checkbox6.checked;
                                                     options.quality.quality = qualityVal;
+                                                    options.removeBg.enable = checkboxBg.checked;
+                                                    options.removeBg.color = bgColorText.value;
+                                                    options.removeBg.threshold = bgThresholdVal;
+                                                    options.removeBg.outerOnly = checkboxBgOuter.checked;
 
                                                     if (gifs[e].endboundary)
                                                         return;
@@ -2197,12 +2249,13 @@ input[type=checkbox]:checked::after {
                                                     changeGif({
                                                         buffer: arrayBuffer,
                                                         repeat: true,
-                                                        quality: checkbox6.checked ? qualityVal : 6,
+                                                        quality: checkbox6.checked ? qualityVal : 0,
                                                         percentSpeed: checkbox1.checked ? speedVal / 100 : null,
                                                         skipFrame: options.skipFrame,
                                                         brightnessFrame: options.brightnessFrame,
                                                         sharpenFrame: options.sharpenFrame,
                                                         optimize: options.optimize,
+                                                        removeBg: options.removeBg,
                                                         oncomplete: (blob) => {
                                                             setImgSrcBlob(e, blob, "★ ");
                                                         },
